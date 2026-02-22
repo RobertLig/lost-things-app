@@ -1,0 +1,144 @@
+@import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-zinc-50: #fafafa;
+    --color-zinc-100: #f5f5f5;
+    --color-zinc-200: #e5e5e5;
+    --color-zinc-300: #d4d4d4;
+    --color-zinc-400: #a3a3a3;
+    --color-zinc-500: #737373;
+    --color-zinc-600: #525252;
+    --color-zinc-700: #404040;
+    --color-zinc-800: #262626;
+    --color-zinc-900: #171717;
+    --color-zinc-950: #0a0a0a;
+
+    --color-accent: var(--color-neutral-800);
+    --color-accent-content: var(--color-neutral-800);
+    --color-accent-foreground: var(--color-white);
+
+    /* Base surfaces */
+    --color-background: oklch(0.98 0.01 160);
+    --color-foreground: oklch(0.22 0.02 160);
+
+    /* Card / surface */
+    --color-surface: oklch(0.95 0.02 160);
+    --color-surface-foreground: oklch(0.25 0.03 160);
+
+    /* Primary accent (mint green) */
+    --color-accent: oklch(0.72 0.16 160);
+    --color-accent-content: oklch(0.72 0.16 160);
+    --color-accent-foreground: oklch(0.98 0.01 160);
+
+    /* Secondary accent (soft mint) */
+    --color-secondary: oklch(0.90 0.06 160);
+    --color-secondary-foreground: oklch(0.30 0.04 160);
+
+    /* Border */
+    --color-border: oklch(0.88 0.02 160);
+    
+    /* Success */
+    --color-success: oklch(0.92 0.04 160);
+    --color-success-foreground: oklch(0.45 0.12 160);
+    --color-success-border: oklch(0.75 0.10 160);
+}
+
+@layer theme {
+    .dark {
+        --color-accent: var(--color-white);
+        --color-accent-content: var(--color-white);
+        --color-accent-foreground: var(--color-neutral-800);
+
+        --color-background: oklch(0.18 0.02 160);
+        --color-foreground: oklch(0.92 0.02 160);
+
+        --color-surface: oklch(0.22 0.03 160);
+        --color-surface-foreground: oklch(0.92 0.02 160);  /* primary text */
+
+        --color-accent: oklch(0.75 0.14 160);  /* mint button */
+        --color-accent-content: oklch(0.80 0.12 160); /* dark text on mint */
+        --color-accent-foreground: oklch(0.18 0.02 160);
+
+        --color-secondary: oklch(0.30 0.04 160);
+        --color-secondary-foreground: oklch(0.72 0.02 160); /* muted text */
+
+        --color-border: oklch(0.32 0.03 160);
+        
+        /* Success */
+        --color-success: oklch(0.28 0.04 160);
+        --color-success-foreground: oklch(0.82 0.12 160);
+        --color-success-border: oklch(0.55 0.10 160);
+    }
+}
+
+@layer utilities {
+
+    .text-success {
+        color: var(--color-success-foreground);
+    }
+
+    .bg-success {
+        background-color: var(--color-success);
+    }
+
+    .border-success {
+        border-color: var(--color-success-border);
+    }
+
+}
+
+@layer base {
+
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentColor);
+    }
+}
+
+[data-flux-field]:not(ui-radio, ui-checkbox) {
+    @apply grid gap-2;
+}
+
+[data-flux-label] {
+    @apply  !mb-0 !leading-tight;
+}
+
+input:focus[data-flux-control],
+textarea:focus[data-flux-control],
+select:focus[data-flux-control] {
+    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+}
+
+/* \[:where(&)\]:size-4 {
+    @apply size-4;
+} */
+
+/* Chrome, Edge, Safari */
+input:-webkit-autofill {
+    background-color: var(--color-surface) !important;
+    color: var(--color-surface-foreground) !important;
+    -webkit-box-shadow: 0 0 0px 1000px var(--color-surface) inset !important;
+    box-shadow: 0 0 0px 1000px var(--color-surface) inset !important;
+    -webkit-text-fill-color: var(--color-surface-foreground) !important;
+}
+
+/* Firefox */
+input:-moz-autofill {
+    background-color: var(--color-surface) !important;
+    color: var(--color-surface-foreground) !important;
+    box-shadow: 0 0 0px 1000px var(--color-surface) inset !important;
+}
+
