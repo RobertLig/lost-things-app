@@ -106,7 +106,7 @@ $classes = Flux::classes()
         'filled'  => 'bg-zinc-800/5 dark:bg-white/10 dark:disabled:bg-white/[7%]',
     })
     ->add(match ($variant) { // Text color
-        'outline' => 'text-surface-foreground disabled:text-secondary-foreground placeholder:text-secondary-foreground disabled:placeholder:text-secondary-foreground/70 ', /* 'text-zinc-700 disabled:text-zinc-500 placeholder-zinc-400 disabled:placeholder-zinc-400/70 dark:text-zinc-200 dark:disabled:text-zinc-400                dark:placeholder-zinc-400 dark:disabled:placeholder-zinc-500', */
+        'outline' => 'text-surface-foreground disabled:text-secondary-foreground placeholder:text-secondary-foreground disabled:placeholder:text-secondary-foreground/70 ', /* 'text-zinc-700 disabled:text-zinc-500 placeholder-zinc-400 disabled:placeholder-zinc-400/70 dark:text-zinc-200 dark:disabled:text-zinc-400 dark:placeholder-zinc-400 dark:disabled:placeholder-zinc-500', */
         'filled'  => 'text-zinc-700 placeholder-zinc-500 disabled:placeholder-zinc-400 dark:text-zinc-200 dark:placeholder-white/60 dark:disabled:placeholder-white/40',
     })
     ->add(match ($variant) { // Border...

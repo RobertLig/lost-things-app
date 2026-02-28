@@ -34,7 +34,7 @@
         </flux:sidebar>
 
         <!-- Mobile User Menu -->
-        <flux:header class="lg:hidden">
+        <flux:header class="lg:hidden bg-background! border-b! border-border!">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
             <flux:spacer />
@@ -45,13 +45,14 @@
                     icon-trailing="chevron-down"
                 />
 
-                <flux:menu>
+                <flux:menu class="bg-surface! border-border!">
                     <flux:menu.radio.group>
                         <div class="p-0 text-sm font-normal">
                             <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
                                 <flux:avatar
                                     :name="auth()->user()->name"
                                     :initials="auth()->user()->initials()"
+                                    color="emerald"
                                 />
 
                                 <div class="grid flex-1 text-start text-sm leading-tight">
@@ -62,15 +63,15 @@
                         </div>
                     </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                    <flux:menu.separator class="bg-border!" />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
+                        <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate class="text-surface-foreground!">
                             {{ __('Settings') }}
                         </flux:menu.item>
                     </flux:menu.radio.group>
 
-                    <flux:menu.separator />
+                    <flux:menu.separator class="bg-border!" />
 
                     <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
