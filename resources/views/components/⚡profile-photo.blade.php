@@ -98,14 +98,14 @@ new class extends Component {
 
         {{-- New preview --}}
         @if ($photo)
-            <img src="{{ $photo->temporaryUrl() }}" class="w-20 h-20 rounded-full object-cover ring-2 ring-mint-400">
+            <img src="{{ $photo->temporaryUrl() }}" class="w-20 h-20 rounded-full object-cover ring-2 ring-border">
 
             {{-- Existing photo --}}
         @elseif ($user->photo_path)
             <img src="{{ Storage::url($user->photo_path) }}"
-                class="w-20 h-20 rounded-full object-cover ring-2 ring-mint-400">
+                class="w-20 h-20 rounded-full object-cover ring-2 ring-border">
         @else
-            <div class="w-20 h-20 rounded-full bg-mint-100 flex items-center justify-center text-mint-600">
+            <div class="w-20 h-20 rounded-full bg-surface flex items-center justify-center text-surface-foreground">
                 No photo
             </div>
         @endif
@@ -118,8 +118,8 @@ new class extends Component {
         class="block w-full text-sm
                file:mr-4 file:py-2 file:px-4
                file:rounded file:border-0
-               file:bg-mint-500 file:text-white
-               hover:file:bg-mint-600">
+               file:bg-surface file:text-surface-foreground
+               hover:file:bg-accent">
 
     @error('photo')
         <div class="text-red-500 text-sm">{{ $message }}</div>
@@ -129,7 +129,9 @@ new class extends Component {
     {{-- Buttons --}}
     <div class="flex gap-2">
 
-        <button wire:click="savePhoto" class="px-4 py-2 bg-mint-500 text-white rounded hover:bg-mint-600">
+        <button wire:click="savePhoto"
+            class="px-4 py-2 bg-accent
+                text-accent-foreground rounded hover:bg-accent/80">
             Save
         </button>
 
@@ -145,7 +147,7 @@ new class extends Component {
 
     {{-- Status --}}
     @if (session('status'))
-        <div class="text-mint-600 text-sm">
+        <div class="text-accent text-sm">
             {{ session('status') }}
         </div>
     @endif
