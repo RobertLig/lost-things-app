@@ -6,6 +6,7 @@ use App\Concerns\PasswordValidationRules;
 use App\Livewire\Actions\Logout;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Illuminate\Support\Facades\Storage;
 
 class DeleteUserForm extends Component
 {
@@ -21,6 +22,12 @@ class DeleteUserForm extends Component
         $this->validate([
             'password' => $this->currentPasswordRules(),
         ]);
+
+        //delete user photo from storage
+        if(Auth::user()->photo_path)
+        {
+            Storage::disk('public')->delete(Auth::user()->photo_path);
+        }
 
         tap(Auth::user(), $logout(...))->delete();
 
