@@ -38,8 +38,9 @@ new class extends Component {
     /**
      * Explicit delete action
      */
-    public function deletePhoto()
+    public function delete()
     {
+        //dd('mama');
         if ($this->user->photo_path) {
             Storage::disk('public')->delete($this->user->photo_path);
         }
@@ -72,6 +73,8 @@ new class extends Component {
 
             $this->photo = null;
             $this->deletePhoto = false;
+
+            session()->flash('status', 'Photo updated successfully.');
         }
 
         // Explicit deletion
@@ -84,9 +87,9 @@ new class extends Component {
             $this->user->save();
 
             $this->deletePhoto = false;
-        }
 
-        session()->flash('status', 'Photo updated successfully.');
+            session()->flash('status', 'Photo updated successfully.');
+        }
     }
 };
 ?>
@@ -97,7 +100,7 @@ new class extends Component {
     <div class="flex items-center gap-4">
 
         {{-- New preview --}}
-        @if ($photo)
+        @if ($photo && $photo->isPreviewable())
             <img src="{{ $photo->temporaryUrl() }}" class="w-20 h-20 rounded-full object-cover ring-2 ring-border">
 
             {{-- Existing photo --}}
@@ -136,8 +139,7 @@ new class extends Component {
         </button>
 
         @if ($user->photo_path || $photo)
-            <button wire:click="deletePhoto" type="button"
-                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+            <button wire:click="delete" type="button" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
                 Remove
             </button>
         @endif
