@@ -29,6 +29,8 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+
+        Fortify::ignoreRoutes();
     }
 
     /**
