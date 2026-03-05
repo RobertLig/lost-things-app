@@ -75,11 +75,11 @@ Route::group(
         // Password Reset...
         if (Features::enabled(Features::resetPasswords())) {
             if ($enableViews) {
-                Route::get(RoutePath::for('password.request', '/forgot-password'), [PasswordResetLinkController::class, 'create'])
+                Route::get(LaravelLocalization::transRoute('routes.password.request'), [PasswordResetLinkController::class, 'create'])
                     ->middleware(['guest:'.config('fortify.guard')])
                     ->name('password.request');
 
-                Route::get(RoutePath::for('password.reset', '/reset-password/{token}'), [NewPasswordController::class, 'create'])
+                Route::get(LaravelLocalization::transRoute('routes.password.reset'), [NewPasswordController::class, 'create'])
                     ->middleware(['guest:'.config('fortify.guard')])
                     ->name('password.reset');
             }

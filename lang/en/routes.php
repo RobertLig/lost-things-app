@@ -4,6 +4,6 @@ return [
     'login' => 'login',
     'register' => 'register',
     'dashboard' => 'dashboard',
-    'password.request' => 'forgotten-password',
-
+    'password.request' => 'forgot-password',
+    'password.reset' => 'reset-password/{token}',
 ];
