@@ -12,6 +12,11 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\Fortify;
 use Laravel\Fortify\Contracts\LoginResponse;
 use Laravel\Fortify\Contracts\LogoutResponse;
+use Laravel\Fortify\Contracts\RegisterResponse;
+use Laravel\Fortify\Contracts\ConfirmPasswordViewResponse;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Support\Facades\URL;
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -48,6 +53,38 @@ class FortifyServiceProvider extends ServiceProvider
                     return redirect()->route('home');
                 }
             };
+        });
+
+        $this->app->singleton(RegisterResponse::class, function () {
+            return new class implements RegisterResponse {
+                public function toResponse($request)
+                {
+                    return redirect()->route('dashboard');
+                }
+            };
+        });
+
+        $this->app->singleton(ConfirmPasswordViewResponse::class, function () {
+            return new class implements ConfirmPasswordViewResponse {
+                public function toResponse($request)
+                {
+                    return view('auth.confirm-password');
+                }
+            };
+        });
+
+
+        VerifyEmail::createUrlUsing(function ($notifiable) {
+
+            return URL::temporarySignedRoute(
+                'verification.verify',
+                now()->addMinutes(config('auth.verification.expire', 60)),
+                [
+                    'id' => $notifiable->getKey(),
+                    'hash' => sha1($notifiable->getEmailForVerification()),
+                    'locale' => LaravelLocalization::getCurrentLocale(),
+                ]
+            );
         });
     }
 

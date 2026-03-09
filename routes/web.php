@@ -109,12 +109,12 @@ Route::group(
         // Email Verification...
         if (Features::enabled(Features::emailVerification())) {
             if ($enableViews) {
-                Route::get(RoutePath::for('verification.notice', '/email/verify'), [EmailVerificationPromptController::class, '__invoke'])
+                Route::get(LaravelLocalization::transRoute('routes.verification.notice'), [EmailVerificationPromptController::class, '__invoke'])
                     ->middleware([config('fortify.auth_middleware', 'auth').':'.config('fortify.guard')])
                     ->name('verification.notice');
             }
 
-            Route::get(RoutePath::for('verification.verify', '/email/verify/{id}/{hash}'), [VerifyEmailController::class, '__invoke'])
+            Route::get(LaravelLocalization::transRoute('routes.verification.verify'), [VerifyEmailController::class, '__invoke'])
                 ->middleware([config('fortify.auth_middleware', 'auth').':'.config('fortify.guard'), 'signed', 'throttle:'.$verificationLimiter])
                 ->name('verification.verify');
 
@@ -125,7 +125,8 @@ Route::group(
 
         // Profile Information...
         if (Features::enabled(Features::updateProfileInformation())) {
-            Route::put(RoutePath::for('user-profile-information.update', '/user/profile-information'), [ProfileInformationController::class, 'update'])
+            Route::put(RoutePath::for('user-profile-information.update', '/user/profile-information'),
+            [ProfileInformationController::class, 'update'])
                 ->middleware([config('fortify.auth_middleware', 'auth').':'.config('fortify.guard')])
                 ->name('user-profile-information.update');
         }
@@ -139,7 +140,7 @@ Route::group(
 
         // Password Confirmation...
         if ($enableViews) {
-            Route::get(RoutePath::for('password.confirm', '/user/confirm-password'), [ConfirmablePasswordController::class, 'show'])
+            Route::get(LaravelLocalization::transRoute('routes.password.confirm'), [ConfirmablePasswordController::class, 'show']) /* RoutePath::for('password.confirm', '/user/confirm-password') */
                 ->middleware([config('fortify.auth_middleware', 'auth').':'.config('fortify.guard')])
                 ->name('password.confirm');
         }
