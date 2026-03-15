@@ -18,6 +18,7 @@
         "mcamara/laravel-localization": "^2.3"
     },
     "require-dev": {
+        "barryvdh/laravel-translation-manager": "^0.6.8",
         "fakerphp/faker": "^1.23",
         "laravel-lang/lang": "^12.17",
         "laravel-lang/locales": "^2.10",

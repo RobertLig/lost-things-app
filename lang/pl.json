@@ -7,5 +7,12 @@
     "Remember me": "Pamiętaj mnie",
     "Log in": "Zaloguj się",
     "Don't have an account?": "Nie masz konta?",
-    "Sign up": "Zarejestruj się"
+    "Sign up": "Zarejestruj się",
+    "Create an account": "Utwórz konto",
+    "Enter your details below to create your account": "Wprowadź swoje dane poniżej, aby utworzyć konto",
+    "Name": "Imię",
+    "Full name": "Pełne imię i nazwisko",
+    "Confirm password": "Potwierdź hasło",
+    "Create account": "Utwórz konto",
+    "Already have an account?": "Masz już konto?"
 }
