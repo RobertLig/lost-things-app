@@ -14,5 +14,13 @@
     "Full name": "Pełne imię i nazwisko",
     "Confirm password": "Potwierdź hasło",
     "Create account": "Utwórz konto",
-    "Already have an account?": "Masz już konto?"
+    "Already have an account?": "Masz już konto?",
+    "This is a secure area of the application. Please confirm your password before continuing.": "To jest bezpieczny obszar aplikacji. Potwierdź hasło, zanim przejdziesz dalej.",
+    "Confirm": "Potwierdź",
+    "Forgot password": "Zapomniałem hasła",
+    "Enter your email to receive a password reset link": "Podaj swój adres e-mail, aby otrzymać link do zresetowania hasła",
+    "Email Address": "Adres e-mail",
+    "Email password reset link": "Link do resetowania hasła e-mail",
+    "Or, return to": "Lub wróć do",
+    "log in": "zaloguj się"
 }
