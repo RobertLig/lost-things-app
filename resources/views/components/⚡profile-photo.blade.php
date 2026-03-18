@@ -109,7 +109,7 @@ new class extends Component {
                 class="w-20 h-20 rounded-full object-cover ring-2 ring-border">
         @else
             <div class="w-20 h-20 rounded-full bg-surface flex items-center justify-center text-surface-foreground">
-                No photo
+                {{ __('No photo') }}
             </div>
         @endif
 
@@ -135,12 +135,12 @@ new class extends Component {
         <button wire:click="savePhoto"
             class="px-4 py-2 bg-accent
                 text-accent-foreground rounded hover:bg-accent/80">
-            Save
+            {{ __('Save') }}
         </button>
 
         @if ($user->photo_path || $photo)
             <button wire:click="delete" type="button" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
-                Remove
+                {{ __('Remove') }}
             </button>
         @endif
 
