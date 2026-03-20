@@ -16,6 +16,7 @@ return [
         'profile' => 'settings/profile',
         'password' => 'settings/password',
         'appearance' => 'settings/appearance',
+        'language' => 'settings/language',
     ],
     'password' => [
         'confirm' => 'password/confirm',

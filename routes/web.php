@@ -23,6 +23,22 @@ use Laravel\Fortify\Http\Controllers\TwoFactorQrCodeController;
 use Laravel\Fortify\Http\Controllers\TwoFactorSecretKeyController;
 use Laravel\Fortify\Http\Controllers\VerifyEmailController;
 use Laravel\Fortify\RoutePath;
+//use Livewire\Livewire;
+
+Route::get('set-locale/{locale}', function ($locale) {
+    if (! array_key_exists($locale, LaravelLocalization::getSupportedLocales())) {
+        abort(400);
+    }
+
+    if (auth()->check()) {
+        auth()->user()->update(['locale' => $locale]);
+    }
+
+    return redirect(
+        LaravelLocalization::getLocalizedURL($locale, LaravelLocalization::getNonLocalizedURL(url()->previous()), [], true)
+    );
+})->name('locale.set');
+
 
 Route::group(
     [
@@ -236,6 +252,17 @@ Route::group(
         } */
     }
 );
+
+/* Route::group(['prefix' => LaravelLocalization::setLocale()], function ()
+{
+    // Your other localized routes...
+
+    Livewire::setUpdateRoute(function ($handle) {
+        $locale = Illuminate\Support\Facades\App::currentLocale();
+
+        return Route::post("/{$locale}/livewire/update", $handle);
+    });
+}); */
 
 
 /* Route::get('/', function () {

@@ -16,6 +16,7 @@ return [
         'profile' => 'ustawienia/profil',
         'password' => 'ustawienia/hasło',
         'appearance' => 'ustawienia/wygląd',
+        'language' => 'ustawienia/język',
     ],
     'password' => [
         'confirm' => 'hasło/potwierdź',
