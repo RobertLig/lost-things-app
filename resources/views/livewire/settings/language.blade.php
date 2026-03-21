@@ -5,19 +5,17 @@
 
     <x-settings.layout :heading="__('Language')" :subheading="__('Change the page language')">
         <flux:dropdown>
-            <flux:button>
+            <flux:button variant="filled">
                 {{ strtoupper($current) }}
             </flux:button>
 
-            <flux:menu>
+            <flux:menu class="bg-[var(--color-surface)]! border-[var(--color-border)]!">
                 @foreach ($locales as $localeCode => $properties)
-                    <flux:menu.item href="{{ route('locale.set', $localeCode) }}">
+                    <flux:menu.item href="{{ route('locale.set', $localeCode) }}"
+                        class="text-[var(--color-surface-foreground)]! hover:bg-[var(--color-accent)]!
+                       hover:text-[var(--color-accent-foreground)]!">
                         {{ $properties['native'] }}
                     </flux:menu.item>
-
-                    {{-- <flux:menu.item href="{{ LaravelLocalization::getLocalizedURL($localeCode, null, [], true) }}">
-                        {{ $properties['native'] }}
-                    </flux:menu.item> --}}
                 @endforeach
             </flux:menu>
         </flux:dropdown>

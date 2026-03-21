@@ -41,6 +41,19 @@ class FortifyServiceProvider extends ServiceProvider
             return new class implements LoginResponse {
                 public function toResponse($request)
                 {
+                    $user = $request->user();
+
+                    if ($user->locale) {
+                        return redirect(
+                            \Mcamara\LaravelLocalization\Facades\LaravelLocalization::getLocalizedURL(
+                                $user->locale,
+                                route('dashboard'),
+                                [],
+                                true
+                            )
+                        );
+                    }
+
                     return redirect()->route('dashboard');
                 }
             };
