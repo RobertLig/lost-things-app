@@ -23,6 +23,7 @@ use Laravel\Fortify\Http\Controllers\TwoFactorQrCodeController;
 use Laravel\Fortify\Http\Controllers\TwoFactorSecretKeyController;
 use Laravel\Fortify\Http\Controllers\VerifyEmailController;
 use Laravel\Fortify\RoutePath;
+use App\Models\Item;
 //use Livewire\Livewire;
 
 Route::get('set-locale/{locale}', function ($locale) {
@@ -39,6 +40,12 @@ Route::get('set-locale/{locale}', function ($locale) {
     );
 })->name('locale.set');
 
+// OUTSIDE localization
+Route::get('/api/map-points', function () {
+    return Item::selectRaw('lat, lng, COUNT(*) as count')
+        ->groupBy('lat', 'lng')
+        ->get();
+});
 
 Route::group(
     [
@@ -56,7 +63,7 @@ Route::group(
         //require base_path('vendor/laravel/fortify/routes/routes.php');
 
         Route::get('/', function () {
-            return view('welcome');
+            return view('home'); //welcome
         })->name('home');
 
         Route::view(LaravelLocalization::transRoute('routes.dashboard'), 'dashboard') //'dashboard', 'dashboard',
