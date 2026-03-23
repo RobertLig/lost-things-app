@@ -47,14 +47,14 @@ class FortifyServiceProvider extends ServiceProvider
                         return redirect(
                             \Mcamara\LaravelLocalization\Facades\LaravelLocalization::getLocalizedURL(
                                 $user->locale,
-                                route('dashboard'),
+                                route('home'), //dashboard
                                 [],
                                 true
                             )
                         );
                     }
 
-                    return redirect()->route('dashboard');
+                    return redirect()->route('home'); //dashboard
                 }
             };
         });
@@ -72,7 +72,7 @@ class FortifyServiceProvider extends ServiceProvider
             return new class implements RegisterResponse {
                 public function toResponse($request)
                 {
-                    return redirect()->route('dashboard');
+                    return redirect()->route('home'); //dashboard
                 }
             };
         });
