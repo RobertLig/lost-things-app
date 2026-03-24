@@ -119,53 +119,122 @@
 
     @fluxScripts
 
+    @if (session('new_item'))
+        <script>
+            window.newItem = @json(session('new_item'));
+        </script>
+    @endif
+
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
     <script>
+        let map;
+        let markers = {}; // store markers by location
+
         function initMap() {
             const el = document.getElementById('map');
 
-            if (!el) return;
+            if (!el || el._leaflet_id) return;
 
-            if (el._leaflet_id) return;
-
-            const map = L.map(el).setView([50.2649, 19.0238], 13);
+            map = L.map(el).setView([50.2649, 19.0238], 13);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
-            // 👉 FETCH DATA
+            loadMarkers(() => {
+                handleNewItem();
+            });
+        }
+
+        function loadMarkers(callback = null) {
             fetch('/api/map-points')
                 .then(res => res.json())
                 .then(points => {
                     points.forEach((point, index) => {
                         setTimeout(() => {
-
-                            const marker = L.marker([point.lat, point.lng], {
-                                icon: L.divIcon({
-                                    className: '',
-                                    html: `
-                                        <div class="marker">
-                                            <div class="marker-pin"></div>
-                                            <div class="marker-badge">${point.count}</div>
-                                        </div>
-                                    `,
-                                    iconSize: [30, 42],
-                                    iconAnchor: [15,
-                                    42], // 👈 bottom center = correct map position
-                                })
-                            }).addTo(map);
-
+                            addOrUpdateMarker(point.lat, point.lng, point.count);
                         }, 100 + index * 120);
                     });
+
+                    // wait until animation ends
+                    setTimeout(() => {
+                        if (callback) callback();
+                    }, 100 + points.length * 120);
                 });
         }
 
-        document.addEventListener('DOMContentLoaded', initMap);
+        function addOrUpdateMarker(lat, lng, count = 1) {
+            const key = `${lat},${lng}`;
 
+            // 🔁 If marker exists → update count
+            if (markers[key]) {
+                const badge = markers[key].getElement().querySelector('.marker-badge');
+                badge.innerText = parseInt(badge.innerText) + 1;
+                return;
+            }
+
+            // ➕ New marker
+            const marker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                    className: '',
+                    html: `
+                    <div class="marker">
+                        <div class="marker-pin"></div>
+                        <div class="marker-badge">${count}</div>
+                    </div>
+                `,
+                    iconSize: [30, 42],
+                    iconAnchor: [15, 42],
+                })
+            }).addTo(map);
+
+            markers[key] = marker;
+
+            // 🎯 optional: pan to new marker
+            map.panTo([lat, lng]);
+        }
+
+        function handleNewItem() {
+            if (!window.newItem) return;
+
+            const {
+                lat,
+                lng
+            } = window.newItem;
+
+            const key = `${lat},${lng}`;
+
+            // pan to location
+            map.flyTo([lat, lng], 15, {
+                duration: 1.2
+            });
+
+            // 🔥 highlight marker (existing OR new)
+            setTimeout(() => {
+                if (markers[key]) {
+                    const el = markers[key].getElement();
+
+                    el.classList.add('marker-highlight');
+
+                    setTimeout(() => {
+                        el.classList.remove('marker-highlight');
+                    }, 1500);
+                }
+            }, 800);
+        }
+
+        // 🧠 LISTEN TO LIVEWIRE EVENT
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('item-created', (data) => {
+                addOrUpdateMarker(data.lat, data.lng);
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', initMap);
         document.addEventListener('livewire:navigated', initMap);
     </script>
+
 </body>
 
 </html>

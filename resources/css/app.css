@@ -220,3 +220,19 @@ input:-moz-autofill {
         opacity: 1;
     }
 }
+
+.marker-highlight {
+    animation: pulse 1s ease;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.4);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
