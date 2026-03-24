@@ -43,9 +43,12 @@ Route::get('set-locale/{locale}', function ($locale) {
 // OUTSIDE localization
 Route::get('/api/map-points', function () {
     return Item::selectRaw('lat, lng, COUNT(*) as count')
+        ->whereNotNull('lat')
+        ->whereNotNull('lng')
         ->groupBy('lat', 'lng')
         ->get();
 });
+
 
 Route::group(
     [

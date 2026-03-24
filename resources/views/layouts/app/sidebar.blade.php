@@ -134,6 +134,32 @@
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
+
+            // 👉 FETCH DATA
+            fetch('/api/map-points')
+                .then(res => res.json())
+                .then(points => {
+                    points.forEach((point, index) => {
+                        setTimeout(() => {
+
+                            const marker = L.marker([point.lat, point.lng], {
+                                icon: L.divIcon({
+                                    className: '',
+                                    html: `
+                                        <div class="marker">
+                                            <div class="marker-pin"></div>
+                                            <div class="marker-badge">${point.count}</div>
+                                        </div>
+                                    `,
+                                    iconSize: [30, 42],
+                                    iconAnchor: [15,
+                                    42], // 👈 bottom center = correct map position
+                                })
+                            }).addTo(map);
+
+                        }, 100 + index * 120);
+                    });
+                });
         }
 
         document.addEventListener('DOMContentLoaded', initMap);
