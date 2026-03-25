@@ -237,16 +237,63 @@
             }, 300);
         }
 
-        // 🧠 LISTEN TO LIVEWIRE EVENT
-        document.addEventListener('livewire:init', () => {
+        // 🧠 LISTEN TO LIVEWIRE EVENT | not needed?
+        /* document.addEventListener('livewire:init', () => {
             Livewire.on('item-created', (data) => {
                 addOrUpdateMarker(data.lat, data.lng);
             });
-        });
+        }); */
 
         document.addEventListener('livewire:navigated', initMap);
     </script>
 
+    <script>
+        function initPickerMap() {
+            const el = document.getElementById('picker-map');
+            if (!el) return;
+
+            console.log('INIT MAP'); // 👈 debug
+
+            // cleanup
+            if (el._leaflet_id) {
+                el._leaflet_id = null;
+                el.innerHTML = '';
+            }
+
+            let map = L.map(el).setView([50.2649, 19.0238], 13);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            let marker = null;
+
+            map.on('click', function(e) {
+                const {
+                    lat,
+                    lng
+                } = e.latlng;
+
+                if (marker) marker.remove();
+
+                marker = L.marker([lat, lng], {
+                    draggable: true
+                }).addTo(map);
+
+                if (window.Livewire) {
+                    Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id'))
+                        .set('lat', lat);
+
+                    Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id'))
+                        .set('lng', lng);
+                }
+            });
+        }
+
+        // 🔥 RUN AFTER EVERYTHING IS READY
+        document.addEventListener('livewire:load', initPickerMap);
+        document.addEventListener('livewire:navigated', initPickerMap);
+    </script>
 </body>
 
 </html>

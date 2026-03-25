@@ -27,9 +27,15 @@ new class extends Component {
             'lost_at' => $this->lost_at,
         ]);
 
-        $this->dispatch('item-created', item: $item);
-
-        return redirect()->route('home');
+        return redirect()
+            ->route('home')
+            ->with('new_item', [
+                'id' => $item->id,
+                'title' => $item->title,
+                'description' => $item->description,
+                'lat' => $item->lat,
+                'lng' => $item->lng,
+            ]);
     }
 };
 ?>
@@ -39,6 +45,8 @@ new class extends Component {
     <flux:heading size="lg">
         {{ __('Create Lost Item') }}
     </flux:heading>
+
+    <div id="picker-map" class="w-full h-80 rounded-xl"></div>
 
     <form wire:submit.prevent="save" class="space-y-4">
 
@@ -57,4 +65,5 @@ new class extends Component {
         </flux:button>
 
     </form>
+
 </div>
