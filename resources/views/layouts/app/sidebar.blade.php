@@ -133,34 +133,54 @@
 
         function initMap() {
             const el = document.getElementById('map');
+            if (!el) return;
 
-            if (!el || el._leaflet_id) return;
+            // 🧹 cleanup previous instance
+            if (map) {
+                map.remove();
+                map = null;
+            }
 
-            map = L.map(el).setView([50.2649, 19.0238], 13);
+            markers = {};
+
+            // 👇 default center (fallback)
+            let center = [50.2649, 19.0238];
+            let zoom = 13;
+
+            // 👇 if redirected from create
+            if (window.newItem) {
+                center = [window.newItem.lat, window.newItem.lng];
+                zoom = 15;
+            }
+
+            map = L.map(el).setView(center, zoom);
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
             loadMarkers(() => {
-                handleNewItem();
+                highlightNewItem(); // optional effect
             });
         }
+
 
         function loadMarkers(callback = null) {
             fetch('/api/map-points')
                 .then(res => res.json())
                 .then(points => {
+
+                    const baseDelay = window.newItem ? 300 : 100;
+
                     points.forEach((point, index) => {
                         setTimeout(() => {
                             addOrUpdateMarker(point.lat, point.lng, point.count);
-                        }, 100 + index * 120);
+                        }, baseDelay + index * 120);
                     });
 
-                    // wait until animation ends
                     setTimeout(() => {
                         if (callback) callback();
-                    }, 100 + points.length * 120);
+                    }, baseDelay + points.length * 120);
                 });
         }
 
@@ -195,22 +215,15 @@
             map.panTo([lat, lng]);
         }
 
-        function handleNewItem() {
+        function highlightNewItem() {
             if (!window.newItem) return;
 
             const {
                 lat,
                 lng
             } = window.newItem;
-
             const key = `${lat},${lng}`;
 
-            // pan to location
-            map.flyTo([lat, lng], 15, {
-                duration: 1.2
-            });
-
-            // 🔥 highlight marker (existing OR new)
             setTimeout(() => {
                 if (markers[key]) {
                     const el = markers[key].getElement();
@@ -221,7 +234,7 @@
                         el.classList.remove('marker-highlight');
                     }, 1500);
                 }
-            }, 800);
+            }, 300);
         }
 
         // 🧠 LISTEN TO LIVEWIRE EVENT
@@ -231,7 +244,6 @@
             });
         });
 
-        document.addEventListener('DOMContentLoaded', initMap);
         document.addEventListener('livewire:navigated', initMap);
     </script>
 
