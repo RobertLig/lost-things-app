@@ -65,6 +65,11 @@ Route::group(
         // Fortify auth routes
         //require base_path('vendor/laravel/fortify/routes/routes.php');
 
+        Route::livewire(
+            LaravelLocalization::transRoute('routes.items.create'),
+            'items.create-item'
+        )->name('items.create')->middleware('auth');
+
         Route::get('/', function () {
             return view('home'); //welcome
         })->name('home');

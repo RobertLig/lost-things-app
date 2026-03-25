@@ -72,5 +72,12 @@
     "Register": "Rejestracja",
     "Language": "Język",
     "Language Settings": "Ustawienia językowe",
-    "Change the page language": "Zmień język strony"
+    "Change the page language": "Zmień język strony",
+    "Add Lost Item": "Dodaj Zgubiony Przedmiot",
+    "Create Lost Item": "Dodaj Zgubiony Przedmiot",
+    "Title": "Tytuł",
+    "Description": "Opis",
+    "Latitude": "Szerokość geograficzna",
+    "Longitude": "Długość geograficzna",
+    "Lost at": "Kiedy zgubiono"
 }

@@ -21,4 +21,8 @@ return [
     'password' => [
         'confirm' => 'password/confirm',
     ],
+
+    'items' => [
+        'create' => 'items/create',
+    ]
 ];

@@ -1,5 +1,10 @@
 <x-layouts::app :title="__('Home')">
     <livewire:map />
+    @auth
+        <flux:button :href="route('items.create')" wire:navigate class="mt-3!">
+            {{ __('Add Lost Item') }}
+        </flux:button>
+    @endauth
 
     {{-- <div class="flex h-full w-full flex-1 flex-col gap-4 rounded-xl">
         <div class="grid auto-rows-min gap-4 md:grid-cols-3">
