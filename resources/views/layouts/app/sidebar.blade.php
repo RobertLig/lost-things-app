@@ -252,31 +252,48 @@
             const el = document.getElementById('picker-map');
             if (!el) return;
 
-            console.log('INIT MAP'); // 👈 debug
+            // ✅ prevent re-initialization
+            if (el._map) return;
 
-            // cleanup
-            if (el._leaflet_id) {
-                el._leaflet_id = null;
-                el.innerHTML = '';
-            }
+            console.log('INIT MAP');
 
             let map = L.map(el).setView([50.2649, 19.0238], 13);
+
+            el._map = map; // store map instance
+            el._marker = null; // store marker
 
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
-            let marker = null;
+            // 👇 restore marker if exists
+            /* if ($wire.lat && $wire.lng) {
+                el._marker = L.marker([$wire.lat, $wire.lng], {
+                    draggable: true
+                }).addTo(map);
 
+                map.setView([$wire.lat, $wire.lng], 15);
+
+                el._marker.on('dragend', function(e) {
+                    const pos = e.target.getLatLng();
+                    $wire.set('lat', pos.lat);
+                    $wire.set('lng', pos.lng);
+                });
+            } */
+
+            // 🖱️ click handler
             map.on('click', function(e) {
                 const {
                     lat,
                     lng
                 } = e.latlng;
 
-                if (marker) marker.remove();
+                // remove old marker safely
+                if (el._marker) {
+                    el._marker.remove();
+                }
 
-                marker = L.marker([lat, lng], {
+                el._marker = L.marker([lat, lng], {
                     draggable: true
                 }).addTo(map);
 
@@ -287,6 +304,12 @@
                     Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id'))
                         .set('lng', lng);
                 }
+
+                el._marker.on('dragend', function(e) {
+                    const pos = e.target.getLatLng();
+                    $wire.set('lat', pos.lat);
+                    $wire.set('lng', pos.lng);
+                });
             });
         }
 

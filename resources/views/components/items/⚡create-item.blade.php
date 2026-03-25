@@ -46,7 +46,7 @@ new class extends Component {
         {{ __('Create Lost Item') }}
     </flux:heading>
 
-    <div id="picker-map" class="w-full h-80 rounded-xl"></div>
+    <div wire:ignore id="picker-map" class="w-full h-80 rounded-xl"></div>
 
     <form wire:submit.prevent="save" class="space-y-4">
 
