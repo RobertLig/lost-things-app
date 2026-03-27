@@ -255,6 +255,27 @@
             // ✅ prevent re-initialization
             if (el._map) return;
 
+            const componentEl = el.closest('[wire\\:id]');
+            if (!componentEl) return;
+
+            const component = Livewire.find(componentEl.getAttribute('wire:id'));
+
+            component.$watch('lat', (lat) => {
+                const lng = component.get('lng');
+
+                if (!lat || !lng) return;
+
+                updateMarker(lat, lng);
+            });
+
+            component.$watch('lng', (lng) => {
+                const lat = component.get('lat');
+
+                if (!lat || !lng) return;
+
+                updateMarker(lat, lng);
+            });
+
             console.log('INIT MAP');
 
             let map = L.map(el).setView([50.2649, 19.0238], 13);
@@ -267,19 +288,9 @@
             }).addTo(map);
 
             // 👇 restore marker if exists
-            /* if ($wire.lat && $wire.lng) {
-                el._marker = L.marker([$wire.lat, $wire.lng], {
-                    draggable: true
-                }).addTo(map);
-
-                map.setView([$wire.lat, $wire.lng], 15);
-
-                el._marker.on('dragend', function(e) {
-                    const pos = e.target.getLatLng();
-                    $wire.set('lat', pos.lat);
-                    $wire.set('lng', pos.lng);
-                });
-            } */
+            if (component.get('lat') && component.get('lng')) {
+                updateMarker(component.get('lat'), component.get('lng'));
+            }
 
             // 🖱️ click handler
             map.on('click', function(e) {
@@ -288,34 +299,99 @@
                     lng
                 } = e.latlng;
 
-                // remove old marker safely
+                updateMarker(lat, lng);
+
+                component.set('lat', lat);
+                component.set('lng', lng);
+            });
+
+            function updateMarker(lat, lng) {
+                // remove old marker
                 if (el._marker) {
                     el._marker.remove();
                 }
 
+                // create new marker
                 el._marker = L.marker([lat, lng], {
                     draggable: true
                 }).addTo(map);
 
-                if (window.Livewire) {
-                    Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id'))
-                        .set('lat', lat);
+                map.setView([lat, lng], 13);
 
-                    Livewire.find(document.querySelector('[wire\\:id]').getAttribute('wire:id'))
-                        .set('lng', lng);
-                }
-
+                // keep drag working
                 el._marker.on('dragend', function(e) {
                     const pos = e.target.getLatLng();
-                    $wire.set('lat', pos.lat);
-                    $wire.set('lng', pos.lng);
+                    component.set('lat', pos.lat);
+                    component.set('lng', pos.lng);
                 });
-            });
+            }
         }
 
         // 🔥 RUN AFTER EVERYTHING IS READY
         document.addEventListener('livewire:load', initPickerMap);
         document.addEventListener('livewire:navigated', initPickerMap);
+
+        function useMyLocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    const el = document.getElementById('picker-map');
+                    if (!el || !el._map) return;
+
+                    const map = el._map;
+
+                    // get Livewire component
+                    const componentEl = el.closest('[wire\\:id]');
+                    if (!componentEl) return;
+
+                    const component = Livewire.find(componentEl.getAttribute('wire:id'));
+
+                    // remove old marker
+                    if (el._marker) {
+                        el._marker.remove();
+                    }
+
+                    // add new marker
+                    el._marker = L.marker([lat, lng], {
+                        draggable: true
+                    }).addTo(map);
+
+                    // center map
+                    map.setView([lat, lng], 15);
+
+                    // update Livewire state
+                    component.set('lat', lat);
+                    component.set('lng', lng);
+
+                    // keep drag working
+                    el._marker.on('dragend', function(e) {
+                        const pos = e.target.getLatLng();
+                        component.set('lat', pos.lat);
+                        component.set('lng', pos.lng);
+                    });
+                },
+                (error) => {
+                    if (error.code === 1) {
+                        alert('Permission denied. Please allow location access.');
+                    } else if (error.code === 2) {
+                        alert('Location unavailable. Try again or use map.');
+                    } else if (error.code === 3) {
+                        alert('Location request timed out.');
+                    } else {
+                        alert('Unknown error retrieving location.');
+                    }
+
+                    console.error(error);
+                }
+            );
+        }
     </script>
 </body>
 

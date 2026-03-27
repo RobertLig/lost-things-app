@@ -48,15 +48,21 @@ new class extends Component {
 
     <div wire:ignore id="picker-map" class="w-full h-80 rounded-xl"></div>
 
+    <div class="mb-3">
+        <flux:button type="button" onclick="useMyLocation()">
+            {{ __('Use my location') }}
+        </flux:button>
+    </div>
+
     <form wire:submit.prevent="save" class="space-y-4">
 
         <flux:input wire:model="title" :label="__('Title')" />
 
         <flux:textarea wire:model="description" :label="__('Description')" />
 
-        <flux:input wire:model="lat" type="number" step="any" :label="__('Latitude')" />
+        <flux:input wire:model.lazy="lat" type="number" step="any" :label="__('Latitude')" />
 
-        <flux:input wire:model="lng" type="number" step="any" :label="__('Longitude')" />
+        <flux:input wire:model.lazy="lng" type="number" step="any" :label="__('Longitude')" />
 
         <flux:input wire:model="lost_at" type="datetime-local" :label="__('Lost at')" />
 

@@ -79,5 +79,6 @@
     "Description": "Opis",
     "Latitude": "Szerokość geograficzna",
     "Longitude": "Długość geograficzna",
-    "Lost at": "Kiedy zgubiono"
+    "Lost at": "Kiedy zgubiono",
+    "Use my location": "Użyj moją lokalizację"
 }
