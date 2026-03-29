@@ -46,19 +46,22 @@ new class extends Component {
         {{ __('Create Lost Item') }}
     </flux:heading>
 
-    <div wire:ignore id="picker-map" class="w-full h-80 rounded-xl"></div>
-
-    <div class="mb-3">
-        <flux:button type="button" onclick="useMyLocation()">
-            {{ __('Use my location') }}
-        </flux:button>
-    </div>
-
     <form wire:submit.prevent="save" class="space-y-4">
 
         <flux:input wire:model="title" :label="__('Title')" />
 
         <flux:textarea wire:model="description" :label="__('Description')" />
+
+        <div wire:ignore id="picker-map" class="w-full h-80 rounded-xl"></div>
+
+        <div class="mb-3">
+            <flux:button type="button" onclick="useMyLocation()">
+                {{ __('Use my location') }}
+            </flux:button>
+        </div>
+
+        {{-- 📸 Images --}}
+        <livewire:sortable-image-library />
 
         <flux:input wire:model.lazy="lat" type="number" step="any" :label="__('Latitude')" />
 

@@ -80,5 +80,7 @@
     "Latitude": "Szerokość geograficzna",
     "Longitude": "Długość geograficzna",
     "Lost at": "Kiedy zgubiono",
-    "Use my location": "Użyj moją lokalizację"
+    "Use my location": "Użyj moją lokalizację",
+    "Add Images": "Dodaj zdjęcia",
+    "Tip: To add multiple images, select them all at once in the file picker.": "Wskazówka: Aby dodać wiele obrazów, zaznacz je wszystkie naraz w selektorze plików."
 }
