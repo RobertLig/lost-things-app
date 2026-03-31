@@ -16,7 +16,7 @@ class SortableImageLibrary extends Component
     use WithFileUploads;
 
     // Stored as a collection (array of ['url' => ...])
-    #[Validate('array|max:4')]
+    #[Validate('array|max:3')]
     public $library; // Existing images (from DB)
 
     // For new uploads
@@ -45,7 +45,7 @@ class SortableImageLibrary extends Component
     public function updatedFiles()
     {
         $this->validate();
-        $max = 4;
+        $max = 3;
         $existing = $this->library->count();
         $new = count($this->files);
 

@@ -232,7 +232,7 @@
 
                     setTimeout(() => {
                         el.classList.remove('marker-highlight');
-                    }, 1500);
+                    }, 3500); //1500
                 }
             }, 300);
         }

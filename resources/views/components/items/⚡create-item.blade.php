@@ -8,6 +8,12 @@ new class extends Component {
     public $lat;
     public $lng;
     public $lost_at;
+    public $createdItemId;
+
+    protected $listeners = [
+        'libraryValidated' => 'saveItemWithImages',
+        'library-saved' => 'redirectAfterSave',
+    ];
 
     public function save()
     {
@@ -18,6 +24,12 @@ new class extends Component {
             'lost_at' => 'required|date',
         ]);
 
+        // 🔥 ask child to validate images
+        $this->dispatch('validateLibrary');
+    }
+
+    public function saveItemWithImages()
+    {
         $item = \App\Models\Item::create([
             'user_id' => auth()->id(),
             'title' => $this->title,
@@ -26,6 +38,16 @@ new class extends Component {
             'lng' => $this->lng,
             'lost_at' => $this->lost_at,
         ]);
+
+        $this->createdItemId = $item->id;
+
+        // 🔥 tell child to save images for this model
+        $this->dispatch('updateLibraryModel', modelId: $item->id);
+    }
+
+    public function redirectAfterSave()
+    {
+        $item = \App\Models\Item::find($this->createdItemId);
 
         return redirect()
             ->route('home')
@@ -67,7 +89,7 @@ new class extends Component {
 
         <flux:input wire:model.lazy="lng" type="number" step="any" :label="__('Longitude')" />
 
-        <flux:input wire:model="lost_at" type="datetime-local" :label="__('Lost at')" />
+        <flux:input wire:model="lost_at" type="date" :label="__('Lost at')" />
 
         <flux:button type="submit">
             {{ __('Save') }}
