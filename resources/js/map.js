@@ -82,6 +82,11 @@ function addOrUpdateMarker(lat, lng, count = 1) {
     markers[key] = marker;
 
     map.panTo([lat, lng]);
+
+    // ✅ click handler
+    marker.on("click", () => {
+        Livewire.dispatch("locationSelected", { items: marker.items });
+    });
 }
 
 function highlightNewItem() {
