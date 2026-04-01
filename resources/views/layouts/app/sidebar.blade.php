@@ -127,7 +127,7 @@
 
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-    <script>
+    {{-- <script>
         let map;
         let markers = {}; // store markers by location
 
@@ -245,91 +245,91 @@
         }); */
 
         document.addEventListener('livewire:navigated', initMap);
-    </script>
+    </script> --}}
 
-    <script>
-        function initPickerMap() {
-            const el = document.getElementById('picker-map');
-            if (!el) return;
+    {{-- <script>
+        /* function initPickerMap() {
+                const el = document.getElementById('picker-map');
+                if (!el) return;
 
-            // ✅ prevent re-initialization
-            if (el._map) return;
+                // ✅ prevent re-initialization
+                if (el._map) return;
 
-            const componentEl = el.closest('[wire\\:id]');
-            if (!componentEl) return;
+                const componentEl = el.closest('[wire\\:id]');
+                if (!componentEl) return;
 
-            const component = Livewire.find(componentEl.getAttribute('wire:id'));
+                const component = Livewire.find(componentEl.getAttribute('wire:id'));
 
-            component.$watch('lat', (lat) => {
-                const lng = component.get('lng');
+                component.$watch('lat', (lat) => {
+                    const lng = component.get('lng');
 
-                if (!lat || !lng) return;
+                    if (!lat || !lng) return;
 
-                updateMarker(lat, lng);
-            });
+                    updateMarker(lat, lng);
+                });
 
-            component.$watch('lng', (lng) => {
-                const lat = component.get('lat');
+                component.$watch('lng', (lng) => {
+                    const lat = component.get('lat');
 
-                if (!lat || !lng) return;
+                    if (!lat || !lng) return;
 
-                updateMarker(lat, lng);
-            });
+                    updateMarker(lat, lng);
+                });
 
-            console.log('INIT MAP');
+                console.log('INIT MAP');
 
-            let map = L.map(el).setView([50.2649, 19.0238], 13);
+                let map = L.map(el).setView([50.2649, 19.0238], 13);
 
-            el._map = map; // store map instance
-            el._marker = null; // store marker
+                el._map = map; // store map instance
+                el._marker = null; // store marker
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-
-            // 👇 restore marker if exists
-            if (component.get('lat') && component.get('lng')) {
-                updateMarker(component.get('lat'), component.get('lng'));
-            }
-
-            // 🖱️ click handler
-            map.on('click', function(e) {
-                const {
-                    lat,
-                    lng
-                } = e.latlng;
-
-                updateMarker(lat, lng);
-
-                component.set('lat', lat);
-                component.set('lng', lng);
-            });
-
-            function updateMarker(lat, lng) {
-                // remove old marker
-                if (el._marker) {
-                    el._marker.remove();
-                }
-
-                // create new marker
-                el._marker = L.marker([lat, lng], {
-                    draggable: true
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
                 }).addTo(map);
 
-                map.setView([lat, lng], 13);
+                // 👇 restore marker if exists
+                if (component.get('lat') && component.get('lng')) {
+                    updateMarker(component.get('lat'), component.get('lng'));
+                }
 
-                // keep drag working
-                el._marker.on('dragend', function(e) {
-                    const pos = e.target.getLatLng();
-                    component.set('lat', pos.lat);
-                    component.set('lng', pos.lng);
+                // 🖱️ click handler
+                map.on('click', function(e) {
+                    const {
+                        lat,
+                        lng
+                    } = e.latlng;
+
+                    updateMarker(lat, lng);
+
+                    component.set('lat', lat);
+                    component.set('lng', lng);
                 });
-            }
-        }
 
-        // 🔥 RUN AFTER EVERYTHING IS READY
-        document.addEventListener('livewire:load', initPickerMap);
-        document.addEventListener('livewire:navigated', initPickerMap);
+                function updateMarker(lat, lng) {
+                    // remove old marker
+                    if (el._marker) {
+                        el._marker.remove();
+                    }
+
+                    // create new marker
+                    el._marker = L.marker([lat, lng], {
+                        draggable: true
+                    }).addTo(map);
+
+                    map.setView([lat, lng], 13);
+
+                    // keep drag working
+                    el._marker.on('dragend', function(e) {
+                        const pos = e.target.getLatLng();
+                        component.set('lat', pos.lat);
+                        component.set('lng', pos.lng);
+                    });
+                }
+            }
+
+            // 🔥 RUN AFTER EVERYTHING IS READY
+            document.addEventListener('livewire:load', initPickerMap);
+            document.addEventListener('livewire:navigated', initPickerMap); */
 
         function useMyLocation() {
             if (!navigator.geolocation) {
@@ -392,7 +392,7 @@
                 }
             );
         }
-    </script>
+    </script> --}}
 
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.1/Sortable.min.js"></script>
 </body>
