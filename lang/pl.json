@@ -83,5 +83,7 @@
     "Use my location": "Użyj moją lokalizację",
     "Add Images": "Dodaj zdjęcia",
     "Tip: To add multiple images, select them all at once in the file picker.": "Wskazówka: Aby dodać wiele obrazów, zaznacz je wszystkie naraz w selektorze plików.",
-    "Delete": "Usuń"
+    "Delete": "Usuń",
+    "Items in this location": "Przedmioty w tej lokalizacji",
+    "Click a marker to see lost items": "Kliknij znacznik, aby zobaczyć zgubione przedmioty"
 }
