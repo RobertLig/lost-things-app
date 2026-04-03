@@ -1,6 +1,4 @@
 //ES Module Class (Map.js)
-// resources/js/modules/Map.js
-
 export default class Map {
     constructor({ el, newItem = null }) {
         this.el = el;

@@ -68,7 +68,7 @@ new class extends Component {
 
         <flux:textarea wire:model="description" :label="__('Description')" />
 
-        <div wire:ignore id="picker-map" class="w-full h-80 rounded-xl"></div>
+        <div wire:ignore id="picker-map" data-component-id="{{ $this->id }}" class="w-full h-80 rounded-xl"></div>
 
         <div class="mb-3">
             <flux:button type="button" onclick="useMyLocation()">

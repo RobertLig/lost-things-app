@@ -16,16 +16,35 @@ document.addEventListener("livewire:navigated", () => {
     map.init();
 });
 
-import { /*initMainMap,*/ initPickerMap, useMyLocation } from "./map";
+// resources/js/app.js
+
+import PickerMap from "./modules/PickerMap";
 
 document.addEventListener("livewire:navigated", () => {
-    //initMainMap();
-    initPickerMap();
+    const el = document.getElementById("picker-map");
+    if (!el) return;
+
+    const componentEl = el.closest("[wire\\:id]");
+    if (!componentEl) return;
+
+    const component = Livewire.find(el.dataset.componentId);
+
+    const picker = new PickerMap({
+        el,
+        component,
+    });
+
+    picker.init();
+});
+
+import { /* initPickerMap,*/ useMyLocation } from "./map";
+
+/* document.addEventListener("livewire:navigated", () => {
+    //initPickerMap();
 });
 
 document.addEventListener("livewire:load", () => {
-    //initMainMap();
-    initPickerMap();
-});
+    //initPickerMap();
+}); */
 
 window.useMyLocation = useMyLocation;
