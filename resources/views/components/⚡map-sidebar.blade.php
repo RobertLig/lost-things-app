@@ -8,12 +8,9 @@ new class extends Component {
 
     protected $listeners = ['locationSelected'];
 
-    public function locationSelected($lat, $lng)
+    public function locationSelected($locationId)
     {
-        $this->items = Item::whereBetween('lat', [$lat - 0.00001, $lat + 0.00001])
-            ->whereBetween('lng', [$lng - 0.00001, $lng + 0.00001])
-            ->get()
-            ->toArray();
+        $this->items = Item::where('location_id', $locationId)->get()->toArray();
     }
 };
 ?>
@@ -23,8 +20,9 @@ new class extends Component {
         <h3 class="font-bold mb-2">{{ __('Items in this location') }}</h3>
 
         @foreach ($items as $item)
-            <div class="border-b border-border py-2">
-                <strong>{{ $item['title'] }}</strong><br>
+            <div class="border-b border-border py-2 cursor-pointer hover:bg-muted/50 transition"
+                wire:click="$dispatch('highlightMapMarker', { locationId: {{ $item['location_id'] }} })" <strong>
+                {{ $item['title'] }}</strong><br>
                 <small>{{ $item['description'] }}</small>
             </div>
         @endforeach
