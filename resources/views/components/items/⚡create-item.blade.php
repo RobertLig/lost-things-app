@@ -34,8 +34,8 @@ new class extends Component {
             'user_id' => auth()->id(),
             'title' => $this->title,
             'description' => $this->description,
-            'lat' => $this->lat,
-            'lng' => $this->lng,
+            'lat' => $this->lat, //moved to Location
+            'lng' => $this->lng, //moved to Location
             'lost_at' => $this->lost_at,
         ]);
 
