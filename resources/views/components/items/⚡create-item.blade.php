@@ -30,18 +30,24 @@ new class extends Component {
 
     public function saveItemWithImages()
     {
+        // 1️⃣ find or create location
+        $location = \App\Models\Location::firstOrCreate([
+            'lat' => round($this->lat, 6),
+            'lng' => round($this->lng, 6),
+        ]);
+
+        // 2️⃣ create item with location_id
         $item = \App\Models\Item::create([
             'user_id' => auth()->id(),
             'title' => $this->title,
             'description' => $this->description,
-            'lat' => $this->lat, //moved to Location
-            'lng' => $this->lng, //moved to Location
             'lost_at' => $this->lost_at,
+            'location_id' => $location->id,
         ]);
 
         $this->createdItemId = $item->id;
 
-        // 🔥 tell child to save images for this model
+        // 3️⃣ trigger image saving
         $this->dispatch('updateLibraryModel', modelId: $item->id);
     }
 
@@ -50,7 +56,13 @@ new class extends Component {
         $item = \App\Models\Item::find($this->createdItemId);
 
         return redirect()->route('home', [
-            'newItem' => json_encode(['id' => $item->id, 'title' => $item->title, 'description' => $item->description, 'lat' => $item->lat, 'lng' => $item->lng]),
+            'newItem' => json_encode([
+                'id' => $item->id,
+                'title' => $item->title,
+                'description' => $item->description,
+                'lat' => $item->location->lat,
+                'lng' => $item->location->lng,
+            ]),
         ]);
     }
 };
@@ -68,10 +80,10 @@ new class extends Component {
 
         <flux:textarea wire:model="description" :label="__('Description')" />
 
-        <div wire:ignore id="picker-map" data-component-id="{{ $this->id }}" class="w-full h-80 rounded-xl"></div>
+        <div wire:ignore id="picker-map" data-component-id="{{ $this->getId() }}" class="w-full h-80 rounded-xl"></div>
 
         <div class="mb-3">
-            <flux:button type="button" onclick="useMyLocation()">
+            <flux:button type="button" onclick="document.getElementById('picker-map').useMyLocation()">
                 {{ __('Use my location') }}
             </flux:button>
         </div>

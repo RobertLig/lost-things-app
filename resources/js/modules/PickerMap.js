@@ -95,4 +95,26 @@ export default class PickerMap {
             this.marker = null;
         }
     }
+
+    // 🔹 GEOLOCATION
+    useMyLocation() {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+
+                this.updateMarker(lat, lng);
+                this.updateComponent(lat, lng);
+            },
+            (error) => {
+                console.error(error);
+                alert("Unable to retrieve your location");
+            },
+        );
+    }
 }

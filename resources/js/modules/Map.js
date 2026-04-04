@@ -41,7 +41,7 @@ export default class Map {
         if (this.newItem) {
             return {
                 center: [this.newItem.lat, this.newItem.lng],
-                zoom: 15,
+                zoom: 12, //15
             };
         }
 
@@ -139,7 +139,7 @@ export default class Map {
         if (!this.newItem) return;
 
         setTimeout(() => {
-            this.highlightMarker(this.newItem.lat, this.newItem.lng);
+            this.highlightMarkerById(this.newItem.lat, this.newItem.lng);
         }, 300);
     }
 

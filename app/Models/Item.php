@@ -16,6 +16,7 @@ class Item extends Model
         'lost_at',
         'user_id',
         'library',
+        'location_id'
     ];
 
     protected $casts = [

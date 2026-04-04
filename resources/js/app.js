@@ -24,9 +24,6 @@ document.addEventListener("livewire:navigated", () => {
     const el = document.getElementById("picker-map");
     if (!el) return;
 
-    const componentEl = el.closest("[wire\\:id]");
-    if (!componentEl) return;
-
     const component = Livewire.find(el.dataset.componentId);
 
     const picker = new PickerMap({
@@ -35,16 +32,7 @@ document.addEventListener("livewire:navigated", () => {
     });
 
     picker.init();
+
+    // 🔥 attach method directly to element
+    el.useMyLocation = () => picker.useMyLocation();
 });
-
-import { /* initPickerMap,*/ useMyLocation } from "./map";
-
-/* document.addEventListener("livewire:navigated", () => {
-    //initPickerMap();
-});
-
-document.addEventListener("livewire:load", () => {
-    //initPickerMap();
-}); */
-
-window.useMyLocation = useMyLocation;
