@@ -1,23 +1,15 @@
-//ES module class
+import BaseMap from "./BaseMap";
 
-export default class PickerMap {
+export default class PickerMap extends BaseMap {
     constructor({ el, component }) {
-        this.el = el;
-        this.component = component;
+        super({ el });
 
-        this.map = null;
+        this.component = component;
         this.marker = null;
     }
 
-    // 🔹 INIT
     init() {
-        if (!this.el || this.map) return;
-
-        this.map = L.map(this.el).setView([50.2649, 19.0238], 13);
-
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "&copy; OpenStreetMap contributors",
-        }).addTo(this.map);
+        this.initMap();
 
         this.bindMapEvents();
         this.bindLivewire();
@@ -25,7 +17,6 @@ export default class PickerMap {
         this.initFromComponent();
     }
 
-    // 🔹 INITIAL STATE
     initFromComponent() {
         const lat = this.component.get("lat");
         const lng = this.component.get("lng");
@@ -35,7 +26,6 @@ export default class PickerMap {
         }
     }
 
-    // 🔹 MARKER LOGIC
     updateMarker(lat, lng) {
         if (this.marker) {
             this.marker.remove();
@@ -45,7 +35,7 @@ export default class PickerMap {
             draggable: true,
         }).addTo(this.map);
 
-        this.map.setView([lat, lng], 13);
+        this.setView(lat, lng, 13);
 
         this.marker.on("dragend", (e) => {
             const pos = e.target.getLatLng();
@@ -53,7 +43,6 @@ export default class PickerMap {
         });
     }
 
-    // 🔹 MAP EVENTS
     bindMapEvents() {
         this.map.on("click", (e) => {
             const { lat, lng } = e.latlng;
@@ -63,7 +52,6 @@ export default class PickerMap {
         });
     }
 
-    // 🔹 LIVEWIRE SYNC
     bindLivewire() {
         this.component.$watch("lat", (lat) => {
             const lng = this.component.get("lng");
@@ -87,16 +75,7 @@ export default class PickerMap {
         this.component.set("lng", lng);
     }
 
-    // 🔹 CLEANUP (optional but good)
-    destroy() {
-        if (this.map) {
-            this.map.remove();
-            this.map = null;
-            this.marker = null;
-        }
-    }
-
-    // 🔹 GEOLOCATION
+    // 🔹 GEOLOCATION (now cleanly inside class)
     useMyLocation() {
         if (!navigator.geolocation) {
             alert("Geolocation is not supported by your browser");

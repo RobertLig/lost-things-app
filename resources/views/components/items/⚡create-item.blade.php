@@ -55,15 +55,7 @@ new class extends Component {
     {
         $item = \App\Models\Item::find($this->createdItemId);
 
-        return redirect()->route('home', [
-            'newItem' => json_encode([
-                'id' => $item->id,
-                'title' => $item->title,
-                'description' => $item->description,
-                'lat' => $item->location->lat,
-                'lng' => $item->location->lng,
-            ]),
-        ]);
+        return redirect()->route('home')->with('new_item_id', $item->id);
     }
 };
 ?>

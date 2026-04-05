@@ -2,18 +2,36 @@
 
 import Map from "./modules/Map";
 
+let mapInstance = null;
+let hookRegistered = false;
+
 document.addEventListener("livewire:navigated", () => {
     const el = document.getElementById("map");
     if (!el) return;
 
-    const newItem = el.dataset.newItem ? JSON.parse(el.dataset.newItem) : null;
+    mapInstance = new Map({ el });
+    mapInstance.init();
 
-    const map = new Map({
-        el,
-        newItem,
-    });
+    if (!hookRegistered) {
+        Livewire.hook("message.processed", () => {
+            const el = document.getElementById("map");
+            if (!el) return;
 
-    map.init();
+            const locationId = el.dataset.highlightLocationId;
+
+            if (locationId && mapInstance) {
+                window.dispatchEvent(
+                    new CustomEvent("highlightMapMarker", {
+                        detail: { locationId: parseInt(locationId) },
+                    }),
+                );
+
+                delete el.dataset.highlightLocationId;
+            }
+        });
+
+        hookRegistered = true;
+    }
 });
 
 // resources/js/app.js

@@ -1,78 +1,58 @@
 //ES Module Class (Map.js)
-export default class Map {
-    constructor({ el, newItem = null }) {
-        this.el = el;
-        this.newItem = newItem;
+import BaseMap from "./BaseMap";
 
-        this.map = null;
+export default class Map extends BaseMap {
+    constructor({ el }) {
+        super({ el });
+
         this.markers = {};
+
+        // 🔥 Promise that resolves when markers are ready
+        this.markersLoaded = new Promise((resolve) => {
+            this._resolveMarkersLoaded = resolve;
+        });
     }
 
-    // 🔹 INIT
     init() {
-        if (!this.el) return;
-
-        this.destroy();
-
         const { center, zoom } = this.getInitialView();
 
-        this.map = L.map(this.el).setView(center, zoom);
+        this.initMap(center, zoom);
 
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution: "&copy; OpenStreetMap contributors",
-        }).addTo(this.map);
+        this.bindEvents(); // 🔥 IMPORTANT
 
-        this.bindEvents();
-        this.loadMarkers(() => this.highlightNewItem());
+        this.loadMarkers();
     }
 
-    // 🔹 CLEANUP
-    destroy() {
-        if (this.map) {
-            this.map.remove();
-            this.map = null;
-        }
-
-        this.markers = {};
-    }
-
-    // 🔹 INITIAL VIEW
     getInitialView() {
-        if (this.newItem) {
-            return {
-                center: [this.newItem.lat, this.newItem.lng],
-                zoom: 12, //15
-            };
-        }
-
         return {
             center: [50.2649, 19.0238],
             zoom: 13,
         };
     }
 
+    // ... (rest stays the same, but replace map.* with this.map)
     // 🔹 LOAD MARKERS
-    async loadMarkers(callback = null) {
+    async loadMarkers() {
         const res = await fetch("/api/map-points");
         const points = await res.json();
 
-        const baseDelay = this.newItem ? 300 : 100;
+        const delay = 80; // tweak for speed (lower = faster animation)
 
         points.forEach((point, index) => {
-            setTimeout(
-                () => {
-                    this.addMarker(point);
-                },
-                baseDelay + index * 120,
-            );
+            setTimeout(() => {
+                this.addMarker(point);
+
+                // 🔥 resolve ONLY after last marker
+                if (index === points.length - 1) {
+                    this._resolveMarkersLoaded();
+                }
+            }, index * delay);
         });
 
-        setTimeout(
-            () => {
-                if (callback) callback();
-            },
-            baseDelay + points.length * 120,
-        );
+        // ⚠️ edge case: no points
+        if (points.length === 0) {
+            this._resolveMarkersLoaded();
+        }
     }
 
     // 🔹 ADD MARKER
@@ -128,26 +108,25 @@ export default class Map {
         const el = marker.getElement();
 
         el.classList.add("marker-highlight");
-        this.map.panTo(marker.getLatLng());
+
+        this.map.flyTo(marker.getLatLng(), 15, {
+            duration: 0.8,
+        });
 
         setTimeout(() => {
             el.classList.remove("marker-highlight");
         }, 2000);
     }
 
-    highlightNewItem() {
-        if (!this.newItem) return;
-
-        setTimeout(() => {
-            this.highlightMarkerById(this.newItem.lat, this.newItem.lng);
-        }, 300);
-    }
-
     // 🔹 EVENTS (Livewire ↔ JS)
     bindEvents() {
-        // Livewire → JS (browser event)
-        window.addEventListener("highlightMapMarker", (e) => {
-            this.highlightMarkerById(e.detail.locationId);
+        window.addEventListener("highlightMapMarker", async (e) => {
+            const { locationId } = e.detail;
+
+            // 🔥 wait until markers exist
+            await this.markersLoaded;
+
+            this.highlightMarkerById(locationId);
         });
     }
 }
