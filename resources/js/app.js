@@ -1,9 +1,6 @@
-// resources/js/app.js
-
 import Map from "./modules/Map";
 
 let mapInstance = null;
-let hookRegistered = false;
 
 document.addEventListener("livewire:navigated", () => {
     const el = document.getElementById("map");
@@ -11,46 +8,35 @@ document.addEventListener("livewire:navigated", () => {
 
     mapInstance = new Map({ el });
     mapInstance.init();
-
-    if (!hookRegistered) {
-        Livewire.hook("message.processed", () => {
-            const el = document.getElementById("map");
-            if (!el) return;
-
-            const locationId = el.dataset.highlightLocationId;
-
-            if (locationId && mapInstance) {
-                window.dispatchEvent(
-                    new CustomEvent("highlightMapMarker", {
-                        detail: { locationId: parseInt(locationId) },
-                    }),
-                );
-
-                delete el.dataset.highlightLocationId;
-            }
-        });
-
-        hookRegistered = true;
-    }
 });
-
-// resources/js/app.js
 
 import PickerMap from "./modules/PickerMap";
 
+let pickerInstance = null;
+
 document.addEventListener("livewire:navigated", () => {
     const el = document.getElementById("picker-map");
+
     if (!el) return;
+
+    // 🔥 destroy previous instance
+    if (pickerInstance) {
+        pickerInstance.destroy();
+        pickerInstance = null;
+    }
+
+    // 🔥 CRITICAL: clear leftover global drag handlers
+    document.onmousemove = null;
+    document.onmouseup = null;
 
     const component = Livewire.find(el.dataset.componentId);
 
-    const picker = new PickerMap({
+    pickerInstance = new PickerMap({
         el,
         component,
     });
 
-    picker.init();
+    pickerInstance.init();
 
-    // 🔥 attach method directly to element
-    el.useMyLocation = () => picker.useMyLocation();
+    el.useMyLocation = () => pickerInstance.useMyLocation();
 });

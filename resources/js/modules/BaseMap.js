@@ -8,9 +8,20 @@ export default class BaseMap {
 
     // 🔹 INIT MAP
     initMap(center = [50.2649, 19.0238], zoom = 13) {
-        if (!this.el || this.map) return;
+        if (!this.el) return;
+
+        // 🔥 Firefox fix
+        L.Browser.pointer = true;
+        L.Browser.touch = false;
+
+        if (this.map) {
+            this.map.remove();
+            this.map = null;
+        }
 
         this.map = L.map(this.el).setView(center, zoom);
+
+        this.map.tap = false;
 
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
             attribution: "&copy; OpenStreetMap contributors",
@@ -25,9 +36,14 @@ export default class BaseMap {
 
     // 🔹 DESTROY
     destroy() {
-        if (this.map) {
-            this.map.remove();
-            this.map = null;
-        }
+        if (!this.map) return;
+
+        // 🔥 remove all handlers (critical)
+        this.map.off();
+
+        // 🔥 remove DOM + listeners
+        this.map.remove();
+
+        this.map = null;
     }
 }

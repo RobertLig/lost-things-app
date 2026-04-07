@@ -6,11 +6,6 @@ export default class Map extends BaseMap {
         super({ el });
 
         this.markers = {};
-
-        // 🔥 Promise that resolves when markers are ready
-        this.markersLoaded = new Promise((resolve) => {
-            this._resolveMarkersLoaded = resolve;
-        });
     }
 
     init() {
@@ -18,9 +13,11 @@ export default class Map extends BaseMap {
 
         this.initMap(center, zoom);
 
-        this.bindEvents(); // 🔥 IMPORTANT
+        this.bindEvents();
 
-        this.loadMarkers();
+        this.loadMarkersForBounds().then(() => {
+            this.handleInitialHighlight();
+        });
     }
 
     getInitialView() {
@@ -30,29 +27,42 @@ export default class Map extends BaseMap {
         };
     }
 
-    // ... (rest stays the same, but replace map.* with this.map)
     // 🔹 LOAD MARKERS
-    async loadMarkers() {
-        const res = await fetch("/api/map-points");
+    async loadMarkersForBounds() {
+        const bounds = this.map.getBounds();
+
+        const query = [
+            bounds.getSouth(),
+            bounds.getWest(),
+            bounds.getNorth(),
+            bounds.getEast(),
+        ].join(",");
+
+        const res = await fetch(`/api/map-points?bounds=${query}`);
         const points = await res.json();
 
-        const delay = 80; // tweak for speed (lower = faster animation)
+        const delay = 80;
 
-        points.forEach((point, index) => {
-            setTimeout(() => {
-                this.addMarker(point);
+        return new Promise((resolve) => {
+            points.forEach((point, index) => {
+                const key = this.getKey(point);
 
-                // 🔥 resolve ONLY after last marker
-                if (index === points.length - 1) {
-                    this._resolveMarkersLoaded();
-                }
-            }, index * delay);
+                // 🔥 skip already loaded markers
+                if (this.markers[key]) return;
+
+                setTimeout(() => {
+                    this.addMarker(point);
+
+                    if (index === points.length - 1) {
+                        resolve();
+                    }
+                }, index * delay);
+            });
+
+            if (points.length === 0) {
+                resolve();
+            }
         });
-
-        // ⚠️ edge case: no points
-        if (points.length === 0) {
-            this._resolveMarkersLoaded();
-        }
     }
 
     // 🔹 ADD MARKER
@@ -120,13 +130,30 @@ export default class Map extends BaseMap {
 
     // 🔹 EVENTS (Livewire ↔ JS)
     bindEvents() {
-        window.addEventListener("highlightMapMarker", async (e) => {
+        let timeout = null;
+
+        this.map.on("moveend", () => {
+            clearTimeout(timeout);
+
+            timeout = setTimeout(() => {
+                this.loadMarkersForBounds();
+            }, 200);
+        });
+
+        window.addEventListener("highlightMapMarker", (e) => {
             const { locationId } = e.detail;
-
-            // 🔥 wait until markers exist
-            await this.markersLoaded;
-
             this.highlightMarkerById(locationId);
         });
+    }
+
+    handleInitialHighlight() {
+        const locationId = this.el.dataset.highlightLocationId;
+
+        if (!locationId) return;
+
+        this.highlightMarkerById(parseInt(locationId));
+
+        // 🔥 one-time use
+        delete this.el.dataset.highlightLocationId;
     }
 }

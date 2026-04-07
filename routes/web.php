@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use App\Models\Location;
+use Illuminate\Http\Request;
 
 //from vendor/laravel/fortify/routes/routes.php
 use Laravel\Fortify\Features;
@@ -42,15 +43,28 @@ Route::get('set-locale/{locale}', function ($locale) {
 })->name('locale.set');
 
 // OUTSIDE localization
-Route::get('/api/map-points', function () {
-    return Location::withCount('items')->get()->map(function ($loc) {
-        return [
-            'id' => $loc->id,
-            'lat' => $loc->lat,
-            'lng' => $loc->lng,
-            'count' => $loc->items_count,
-        ];
-    });
+Route::get('/api/map-points', function (Request $request) {
+
+    if (!$request->has('bounds')) {
+        // fallback (optional)
+        return collect([]);
+    }
+
+    [$south, $west, $north, $east] = explode(',', $request->bounds);
+
+    return Location::query()
+        ->whereBetween('lat', [$south, $north])
+        ->whereBetween('lng', [$west, $east])
+        ->withCount('items')
+        ->get()
+        ->map(function ($loc) {
+            return [
+                'id' => $loc->id,
+                'lat' => $loc->lat,
+                'lng' => $loc->lng,
+                'count' => $loc->items_count,
+            ];
+        });
 });
 
 Route::group(

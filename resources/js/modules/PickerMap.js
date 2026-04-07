@@ -11,10 +11,54 @@ export default class PickerMap extends BaseMap {
     init() {
         this.initMap();
 
+        // 🔥 wait for DOM + layout + paint to finish
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                // 🔥 CRITICAL: force full recalculation
+                this.map.invalidateSize(true);
+
+                const center = this.map.getCenter();
+
+                // 🔥 THIS LINE FIXES THE OFFSET BUG
+                this.map.setView(center, this.map.getZoom(), {
+                    animate: false,
+                    reset: true,
+                });
+            });
+        });
+
         this.bindMapEvents();
         this.bindLivewire();
-
         this.initFromComponent();
+    }
+
+    waitForStableLayout() {
+        return new Promise((resolve) => {
+            let last = null;
+            let stableCount = 0;
+
+            const check = () => {
+                const rect = this.el.getBoundingClientRect();
+
+                const current = `${rect.top}-${rect.left}-${rect.width}-${rect.height}`;
+
+                if (current === last) {
+                    stableCount++;
+                } else {
+                    stableCount = 0;
+                    last = current;
+                }
+
+                // 🔥 wait for 3 stable frames
+                if (stableCount >= 3) {
+                    resolve();
+                } else {
+                    requestAnimationFrame(check);
+                }
+            };
+
+            check();
+        });
     }
 
     initFromComponent() {
@@ -35,10 +79,24 @@ export default class PickerMap extends BaseMap {
             draggable: true,
         }).addTo(this.map);
 
+        // 🔥 reset marker drag state too
+        if (this.marker.dragging && this.marker.dragging._draggable) {
+            const d = this.marker.dragging._draggable;
+            d._moved = false;
+            d._moving = false;
+            d._startPoint = null;
+            d._startPos = null;
+        }
+
+        // 🔥 FORCE correct dragging behavior
+        this.marker.dragging.enable();
+        this.map.dragging.enable();
+
         this.setView(lat, lng, 13);
 
         this.marker.on("dragend", (e) => {
             const pos = e.target.getLatLng();
+
             this.updateComponent(pos.lat, pos.lng);
         });
     }
