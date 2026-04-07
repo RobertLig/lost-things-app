@@ -14,6 +14,9 @@ export default class Map extends BaseMap {
         this.visibleMarkers = new Set();
 
         this.isUpdatingVisibility = false;
+
+        this.addQueue = [];
+        this.isProcessingQueue = false;
     }
 
     init() {
@@ -212,8 +215,7 @@ export default class Map extends BaseMap {
             const isCurrentlyVisible = this.visibleMarkers.has(key);
 
             if (isVisible && !isCurrentlyVisible) {
-                marker.addTo(this.map);
-                this.visibleMarkers.add(key);
+                this.queueMarkerAdd(key, marker);
             }
 
             if (!isVisible && isCurrentlyVisible) {
@@ -223,5 +225,29 @@ export default class Map extends BaseMap {
         });
 
         this.isUpdatingVisibility = false;
+    }
+
+    queueMarkerAdd(key, marker) {
+        this.addQueue.push({ key, marker });
+
+        if (!this.isProcessingQueue) {
+            this.processQueue();
+        }
+    }
+
+    processQueue() {
+        if (this.addQueue.length === 0) {
+            this.isProcessingQueue = false;
+            return;
+        }
+
+        this.isProcessingQueue = true;
+
+        const { key, marker } = this.addQueue.shift();
+
+        marker.addTo(this.map);
+        this.visibleMarkers.add(key);
+
+        setTimeout(() => this.processQueue(), 80); // 👈 same delay as before
     }
 }
