@@ -6,6 +6,10 @@ export default class Map extends BaseMap {
         super({ el });
 
         this.markers = {};
+
+        this.loadedCells = new Set(); // cache
+
+        this.cellSize = 0.01;
     }
 
     init() {
@@ -15,7 +19,7 @@ export default class Map extends BaseMap {
 
         this.bindEvents();
 
-        this.loadMarkersForBounds().then(() => {
+        this.loadMarkersForCells().then(() => {
             this.handleInitialHighlight();
         });
     }
@@ -28,17 +32,20 @@ export default class Map extends BaseMap {
     }
 
     // 🔹 LOAD MARKERS
-    async loadMarkersForBounds() {
-        const bounds = this.map.getBounds();
+    async loadMarkersForCells() {
+        const cells = this.getVisibleCells();
 
-        const query = [
-            bounds.getSouth(),
-            bounds.getWest(),
-            bounds.getNorth(),
-            bounds.getEast(),
-        ].join(",");
+        // 🔥 find only NEW cells
+        const newCells = cells.filter((cell) => !this.loadedCells.has(cell));
 
-        const res = await fetch(`/api/map-points?bounds=${query}`);
+        if (newCells.length === 0) {
+            return; // ✅ already cached → no request
+        }
+
+        // 🔥 mark as loaded BEFORE request (prevents duplicates)
+        newCells.forEach((cell) => this.loadedCells.add(cell));
+
+        const res = await fetch(`/api/map-points?cells=${newCells.join(",")}`);
         const points = await res.json();
 
         const delay = 80;
@@ -136,7 +143,7 @@ export default class Map extends BaseMap {
             clearTimeout(timeout);
 
             timeout = setTimeout(() => {
-                this.loadMarkersForBounds();
+                this.loadMarkersForCells();
             }, 200);
         });
 
@@ -155,5 +162,24 @@ export default class Map extends BaseMap {
 
         // 🔥 one-time use
         delete this.el.dataset.highlightLocationId;
+    }
+
+    getVisibleCells() {
+        const bounds = this.map.getBounds();
+
+        const south = Math.floor(bounds.getSouth() / this.cellSize);
+        const north = Math.floor(bounds.getNorth() / this.cellSize);
+        const west = Math.floor(bounds.getWest() / this.cellSize);
+        const east = Math.floor(bounds.getEast() / this.cellSize);
+
+        const cells = [];
+
+        for (let lat = south; lat <= north; lat++) {
+            for (let lng = west; lng <= east; lng++) {
+                cells.push(`${lat}:${lng}`);
+            }
+        }
+
+        return cells;
     }
 }

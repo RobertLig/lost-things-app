@@ -45,16 +45,35 @@ Route::get('set-locale/{locale}', function ($locale) {
 // OUTSIDE localization
 Route::get('/api/map-points', function (Request $request) {
 
-    if (!$request->has('bounds')) {
-        // fallback (optional)
+    if (!$request->has('cells')) {
         return collect([]);
     }
 
-    [$south, $west, $north, $east] = explode(',', $request->bounds);
+    $cells = explode(',', $request->cells);
 
-    return Location::query()
-        ->whereBetween('lat', [$south, $north])
-        ->whereBetween('lng', [$west, $east])
+    $cellSize = 0.01; // MUST match frontend
+
+    $query = Location::query();
+
+    // 🔥 Build OR conditions for each cell
+    $query->where(function ($q) use ($cells, $cellSize) {
+        foreach ($cells as $cell) {
+            [$latIndex, $lngIndex] = explode(':', $cell);
+
+            $south = $latIndex * $cellSize;
+            $north = ($latIndex + 1) * $cellSize;
+
+            $west = $lngIndex * $cellSize;
+            $east = ($lngIndex + 1) * $cellSize;
+
+            $q->orWhere(function ($q2) use ($south, $north, $west, $east) {
+                $q2->whereBetween('lat', [$south, $north])
+                   ->whereBetween('lng', [$west, $east]);
+            });
+        }
+    });
+
+    return $query
         ->withCount('items')
         ->get()
         ->map(function ($loc) {
