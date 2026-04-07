@@ -10,6 +10,10 @@ export default class Map extends BaseMap {
         this.loadedCells = new Set(); // cache
 
         this.cellSize = 0.01;
+
+        this.visibleMarkers = new Set();
+
+        this.isUpdatingVisibility = false;
     }
 
     init() {
@@ -20,6 +24,7 @@ export default class Map extends BaseMap {
         this.bindEvents();
 
         this.loadMarkersForCells().then(() => {
+            this.updateVisibleMarkers(); // 🔥 important
             this.handleInitialHighlight();
         });
     }
@@ -83,7 +88,7 @@ export default class Map extends BaseMap {
 
         const marker = L.marker([point.lat, point.lng], {
             icon: this.createIcon(point.count),
-        }).addTo(this.map);
+        });
 
         marker.on("click", () => {
             Livewire.dispatch("locationSelected", {
@@ -92,6 +97,13 @@ export default class Map extends BaseMap {
         });
 
         this.markers[key] = marker;
+
+        const isVisible = this.map.getBounds().contains(marker.getLatLng());
+
+        if (isVisible) {
+            marker.addTo(this.map);
+            this.visibleMarkers.add(key);
+        }
     }
 
     createIcon(count) {
@@ -144,6 +156,11 @@ export default class Map extends BaseMap {
 
             timeout = setTimeout(() => {
                 this.loadMarkersForCells();
+
+                // 🔥 delay visibility update (breaks recursion loop)
+                setTimeout(() => {
+                    this.updateVisibleMarkers();
+                }, 0);
             }, 200);
         });
 
@@ -181,5 +198,30 @@ export default class Map extends BaseMap {
         }
 
         return cells;
+    }
+
+    updateVisibleMarkers() {
+        if (this.isUpdatingVisibility) return; // 🔒 prevent recursion
+        this.isUpdatingVisibility = true;
+
+        const bounds = this.map.getBounds();
+
+        Object.entries(this.markers).forEach(([key, marker]) => {
+            const latLng = marker.getLatLng();
+            const isVisible = bounds.contains(latLng);
+            const isCurrentlyVisible = this.visibleMarkers.has(key);
+
+            if (isVisible && !isCurrentlyVisible) {
+                marker.addTo(this.map);
+                this.visibleMarkers.add(key);
+            }
+
+            if (!isVisible && isCurrentlyVisible) {
+                this.map.removeLayer(marker);
+                this.visibleMarkers.delete(key);
+            }
+        });
+
+        this.isUpdatingVisibility = false;
     }
 }
