@@ -45,45 +45,30 @@ Route::get('set-locale/{locale}', function ($locale) {
 // OUTSIDE localization
 Route::get('/api/map-points', function (Request $request) {
 
-    if (!$request->has('cells')) {
-        return collect([]);
+    $bbox = $request->query('bbox');
+
+    if (!$bbox) {
+        return response()->json([]);
     }
 
-    $cells = explode(',', $request->cells);
+    [$west, $south, $east, $north] = explode(',', $bbox);
 
-    $cellSize = 0.01; // MUST match frontend
-
-    $query = Location::query();
-
-    // 🔥 Build OR conditions for each cell
-    $query->where(function ($q) use ($cells, $cellSize) {
-        foreach ($cells as $cell) {
-            [$latIndex, $lngIndex] = explode(':', $cell);
-
-            $south = $latIndex * $cellSize;
-            $north = ($latIndex + 1) * $cellSize;
-
-            $west = $lngIndex * $cellSize;
-            $east = ($lngIndex + 1) * $cellSize;
-
-            $q->orWhere(function ($q2) use ($south, $north, $west, $east) {
-                $q2->whereBetween('lat', [$south, $north])
-                   ->whereBetween('lng', [$west, $east]);
-            });
-        }
-    });
-
-    return $query
+    $locations = Location::query()
+        ->whereBetween('lat', [(float)$south, (float)$north])
+        ->whereBetween('lng', [(float)$west, (float)$east])
         ->withCount('items')
-        ->get()
-        ->map(function ($loc) {
+        ->get();
+
+    return response()->json(
+        $locations->map(function ($loc) {
             return [
                 'id' => $loc->id,
                 'lat' => $loc->lat,
                 'lng' => $loc->lng,
                 'count' => $loc->items_count,
             ];
-        });
+        })
+    );
 });
 
 Route::group(

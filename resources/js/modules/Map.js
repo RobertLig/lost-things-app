@@ -7,10 +7,6 @@ export default class Map extends BaseMap {
 
         this.markers = {};
 
-        this.loadedCells = new Set(); // cache
-
-        this.cellSize = 0.01;
-
         this.visibleMarkers = new Set();
 
         this.isUpdatingVisibility = false;
@@ -26,10 +22,18 @@ export default class Map extends BaseMap {
 
         this.bindEvents();
 
-        this.loadMarkersForCells().then(() => {
-            this.updateVisibleMarkers(); // 🔥 important
+        this.loadMarkers();
+
+        this.lastBbox = null;
+
+        // 🔥 small delay so first markers exist
+        setTimeout(() => {
+            this.updateVisibleMarkers();
             this.handleInitialHighlight();
-        });
+        }, 100);
+
+        console.log("markers:", Object.keys(this.markers).length);
+        console.log("visible:", this.visibleMarkers.size);
     }
 
     getInitialView() {
@@ -40,44 +44,34 @@ export default class Map extends BaseMap {
     }
 
     // 🔹 LOAD MARKERS
-    async loadMarkersForCells() {
-        const cells = this.getVisibleCells();
+    async loadMarkers() {
+        const bounds = this.map.getBounds();
 
-        // 🔥 find only NEW cells
-        const newCells = cells.filter((cell) => !this.loadedCells.has(cell));
+        const bbox = [
+            bounds.getWest(),
+            bounds.getSouth(),
+            bounds.getEast(),
+            bounds.getNorth(),
+        ].join(",");
 
-        if (newCells.length === 0) {
-            return; // ✅ already cached → no request
-        }
+        if (this.lastBbox === bbox) return;
+        this.lastBbox = bbox;
 
-        // 🔥 mark as loaded BEFORE request (prevents duplicates)
-        newCells.forEach((cell) => this.loadedCells.add(cell));
-
-        const res = await fetch(`/api/map-points?cells=${newCells.join(",")}`);
+        const res = await fetch(`/api/map-points?bbox=${bbox}`);
         const points = await res.json();
 
-        const delay = 80;
+        console.log("points:", points);
 
-        return new Promise((resolve) => {
-            points.forEach((point, index) => {
-                const key = this.getKey(point);
+        points.forEach((point) => {
+            const key = this.getKey(point);
 
-                // 🔥 skip already loaded markers
-                if (this.markers[key]) return;
+            if (this.markers[key]) return;
 
-                setTimeout(() => {
-                    this.addMarker(point);
-
-                    if (index === points.length - 1) {
-                        resolve();
-                    }
-                }, index * delay);
-            });
-
-            if (points.length === 0) {
-                resolve();
-            }
+            this.addMarker(point);
         });
+
+        // 🔥 ensure markers appear
+        this.updateVisibleMarkers();
     }
 
     // 🔹 ADD MARKER
@@ -101,12 +95,7 @@ export default class Map extends BaseMap {
 
         this.markers[key] = marker;
 
-        const isVisible = this.map.getBounds().contains(marker.getLatLng());
-
-        if (isVisible) {
-            marker.addTo(this.map);
-            this.visibleMarkers.add(key);
-        }
+        this.updateVisibleMarkers();
     }
 
     createIcon(count) {
@@ -158,12 +147,7 @@ export default class Map extends BaseMap {
             clearTimeout(timeout);
 
             timeout = setTimeout(() => {
-                this.loadMarkersForCells();
-
-                // 🔥 delay visibility update (breaks recursion loop)
-                setTimeout(() => {
-                    this.updateVisibleMarkers();
-                }, 0);
+                this.loadMarkers();
             }, 200);
         });
 
@@ -184,25 +168,6 @@ export default class Map extends BaseMap {
         delete this.el.dataset.highlightLocationId;
     }
 
-    getVisibleCells() {
-        const bounds = this.map.getBounds();
-
-        const south = Math.floor(bounds.getSouth() / this.cellSize);
-        const north = Math.floor(bounds.getNorth() / this.cellSize);
-        const west = Math.floor(bounds.getWest() / this.cellSize);
-        const east = Math.floor(bounds.getEast() / this.cellSize);
-
-        const cells = [];
-
-        for (let lat = south; lat <= north; lat++) {
-            for (let lng = west; lng <= east; lng++) {
-                cells.push(`${lat}:${lng}`);
-            }
-        }
-
-        return cells;
-    }
-
     updateVisibleMarkers() {
         if (this.isUpdatingVisibility) return; // 🔒 prevent recursion
         this.isUpdatingVisibility = true;
@@ -219,7 +184,9 @@ export default class Map extends BaseMap {
             }
 
             if (!isVisible && isCurrentlyVisible) {
-                this.map.removeLayer(marker);
+                if (this.map.hasLayer(marker)) {
+                    this.map.removeLayer(marker);
+                }
                 this.visibleMarkers.delete(key);
             }
         });
