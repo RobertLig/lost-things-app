@@ -1,17 +1,13 @@
-// resources/js/modules/Map.js
-
 import BaseMap from "./BaseMap";
 import MapService from "./MapService";
-import MarkerLayer from "./MarkerLayer";
+import MarkerLayer from "./layers/MarkerLayer";
 
 export default class Map extends BaseMap {
     constructor({ el }) {
         super({ el });
 
         this.service = new MapService();
-        this.markerLayer = null;
-
-        this.lastBbox = null;
+        this.layers = [];
     }
 
     init() {
@@ -19,14 +15,12 @@ export default class Map extends BaseMap {
 
         this.initMap(center, zoom);
 
-        this.markerLayer = new MarkerLayer(this.map);
-
+        this.registerLayers();
         this.bindEvents();
 
-        this.loadMarkers();
+        this.layers.forEach((layer) => layer.onAdd());
 
         setTimeout(() => {
-            this.updateVisibleMarkers();
             this.handleInitialHighlight();
         }, 100);
     }
@@ -38,31 +32,8 @@ export default class Map extends BaseMap {
         };
     }
 
-    async loadMarkers() {
-        const bounds = this.map.getBounds();
-        const padBounds = bounds.pad(0.2);
-
-        const bbox = [
-            padBounds.getWest(),
-            padBounds.getSouth(),
-            padBounds.getEast(),
-            padBounds.getNorth(),
-        ].join(",");
-
-        if (this.lastBbox === bbox) return;
-        this.lastBbox = bbox;
-
-        const points = await this.service.fetchPoints(bbox);
-
-        points.forEach((point) => {
-            const key = point.id;
-
-            if (this.markerLayer.has(key)) return;
-
-            this.markerLayer.add(point);
-        });
-
-        this.updateVisibleMarkers();
+    registerLayers() {
+        this.layers.push(new MarkerLayer(this.map, this.service));
     }
 
     bindEvents() {
@@ -72,28 +43,35 @@ export default class Map extends BaseMap {
             clearTimeout(timeout);
 
             timeout = setTimeout(() => {
-                this.loadMarkers();
+                const bounds = this.map.getBounds();
+
+                this.layers.forEach((layer) => {
+                    layer.onMove(bounds);
+                });
             }, 200);
         });
 
         window.addEventListener("highlightMapMarker", (e) => {
             const { locationId } = e.detail;
-            this.markerLayer.highlight(locationId);
+
+            this.layers.forEach((layer) => {
+                if (layer.highlight) {
+                    layer.highlight(locationId);
+                }
+            });
         });
     }
 
     handleInitialHighlight() {
         const locationId = this.el.dataset.highlightLocationId;
-
         if (!locationId) return;
 
-        this.markerLayer.highlight(parseInt(locationId));
+        this.layers.forEach((layer) => {
+            if (layer.highlight) {
+                layer.highlight(parseInt(locationId));
+            }
+        });
 
         delete this.el.dataset.highlightLocationId;
-    }
-
-    updateVisibleMarkers() {
-        const bounds = this.map.getBounds();
-        this.markerLayer.updateVisibility(bounds);
     }
 }
