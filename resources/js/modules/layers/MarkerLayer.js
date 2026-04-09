@@ -64,6 +64,9 @@ export default class MarkerLayer extends BaseLayer {
         });
 
         marker.on("click", () => {
+            // 🔥 highlight immediately
+            this.highlight(point.id);
+
             Livewire.dispatch("locationSelected", {
                 locationId: point.id,
             });

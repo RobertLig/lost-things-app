@@ -2,8 +2,11 @@
 
 use Livewire\Component;
 use App\Models\Item;
+use Livewire\WithPagination;
 
 new class extends Component {
+    use WithPagination;
+
     public $items = [];
 
     protected $listeners = ['locationSelected'];
@@ -15,7 +18,24 @@ new class extends Component {
 };
 ?>
 
-<div class="p-4 text-foreground">
+<div class="p-4 text-foreground relative">
+    {{-- 🔄 SKELETON LOADER --}}
+    <div wire:loading.delay.short wire:target="locationSelected"
+        class="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 p-4">
+
+        <h3 class="font-bold mb-2">{{ __('Items in this location') }}</h3>
+
+        @for ($i = 0; $i < 3; $i++)
+            <div class="border-b border-border py-2">
+                <flux:skeleton.group animate="shimmer">
+                    <flux:skeleton.line class="mb-2 w-2/3" />
+
+                    <flux:skeleton.line class="w-3/4" />
+                </flux:skeleton.group>
+            </div>
+        @endfor
+    </div>
+
     @if (count($items))
         <h3 class="font-bold mb-2">{{ __('Items in this location') }}</h3>
 
