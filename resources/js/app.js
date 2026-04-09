@@ -40,3 +40,18 @@ document.addEventListener("livewire:navigated", () => {
 
     el.useMyLocation = () => pickerInstance.useMyLocation();
 });
+
+function registerGlobalListeners() {
+    window.addEventListener("scrollSidebarToTop", () => {
+        const el = document.getElementById("sidebar-map");
+
+        if (el) {
+            el.scrollTo({
+                top: 0,
+                behavior: "smooth",
+            });
+        }
+    });
+}
+
+registerGlobalListeners();
