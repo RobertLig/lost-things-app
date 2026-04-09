@@ -2,8 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
-use App\Models\Location;
-use Illuminate\Http\Request;
 
 //from vendor/laravel/fortify/routes/routes.php
 use Laravel\Fortify\Features;
@@ -27,6 +25,7 @@ use Laravel\Fortify\Http\Controllers\VerifyEmailController;
 use Laravel\Fortify\RoutePath;
 use App\Models\Item;
 //use Livewire\Livewire;
+use App\Http\Controllers\MapPointController;
 
 Route::get('set-locale/{locale}', function ($locale) {
     if (! array_key_exists($locale, LaravelLocalization::getSupportedLocales())) {
@@ -43,33 +42,8 @@ Route::get('set-locale/{locale}', function ($locale) {
 })->name('locale.set');
 
 // OUTSIDE localization
-Route::get('/api/map-points', function (Request $request) {
 
-    $bbox = $request->query('bbox');
-
-    if (!$bbox) {
-        return response()->json([]);
-    }
-
-    [$west, $south, $east, $north] = explode(',', $bbox);
-
-    $locations = Location::query()
-        ->whereBetween('lat', [(float)$south, (float)$north])
-        ->whereBetween('lng', [(float)$west, (float)$east])
-        ->withCount('items')
-        ->get();
-
-    return response()->json(
-        $locations->map(function ($loc) {
-            return [
-                'id' => $loc->id,
-                'lat' => $loc->lat,
-                'lng' => $loc->lng,
-                'count' => $loc->items_count,
-            ];
-        })
-    );
-});
+Route::get('/api/map-points', [MapPointController::class, 'index']);
 
 Route::group(
     [

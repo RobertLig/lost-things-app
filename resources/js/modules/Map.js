@@ -47,11 +47,13 @@ export default class Map extends BaseMap {
     async loadMarkers() {
         const bounds = this.map.getBounds();
 
+        const padBounds = bounds.pad(0.2); // 20%
+
         const bbox = [
-            bounds.getWest(),
-            bounds.getSouth(),
-            bounds.getEast(),
-            bounds.getNorth(),
+            padBounds.getWest(),
+            padBounds.getSouth(),
+            padBounds.getEast(),
+            padBounds.getNorth(),
         ].join(",");
 
         if (this.lastBbox === bbox) return;
