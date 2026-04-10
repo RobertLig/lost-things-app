@@ -29,7 +29,7 @@ new class extends Component {
         $this->dispatch('validateLibrary');
     }
 
-    public function saveItemWithImages()
+    public function saveItemWithImages(TranslationService $translator)
     {
         // 1️⃣ find or create location
         $location = \App\Models\Location::firstOrCreate([
@@ -44,28 +44,47 @@ new class extends Component {
             'location_id' => $location->id,
         ]);
 
+        // 3️⃣ translate
+        //$translator = app(TranslationService::class);
+
         $sourceLocale = app()->getLocale(); // 'pl' or 'en'
         $targetLocale = $sourceLocale === 'pl' ? 'en' : 'pl';
 
-        // 3️⃣ translate
-        $translator = app(TranslationService::class);
+        if ($sourceLocale === 'pl') {
+            $titleEn = $translator->translate($this->title, 'en');
+            $descEn = $translator->translate($this->description, 'en');
 
-        $titleEn = $translator->translate($this->title, 'en');
-        $descEn = $translator->translate($this->description, 'en');
+            // 4️⃣ save translations
+            $item->translations()->createMany([
+                [
+                    'locale' => 'pl',
+                    'title' => $this->title,
+                    'description' => $this->description,
+                ],
+                [
+                    'locale' => 'en',
+                    'title' => $titleEn,
+                    'description' => $descEn,
+                ],
+            ]);
+        } elseif ($sourceLocale === 'en') {
+            $titlePl = $translator->translate($this->title, 'pl');
+            $descPl = $translator->translate($this->description, 'pl');
 
-        // 4️⃣ save translations
-        $item->translations()->createMany([
-            [
-                'locale' => 'pl',
-                'title' => $this->title,
-                'description' => $this->description,
-            ],
-            [
-                'locale' => 'en',
-                'title' => $titleEn,
-                'description' => $descEn,
-            ],
-        ]);
+            // 4️⃣ save translations
+            $item->translations()->createMany([
+                [
+                    'locale' => 'pl',
+                    'title' => $titlePl,
+                    'description' => $descPl,
+                ],
+                [
+                    'locale' => 'en',
+                    'title' => $this->title,
+                    'description' => $this->description,
+                ],
+            ]);
+        }
 
         $this->createdItemId = $item->id;
 

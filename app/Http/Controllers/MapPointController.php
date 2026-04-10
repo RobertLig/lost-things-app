@@ -20,13 +20,6 @@ class MapPointController extends Controller
 
         [$west, $south, $east, $north] = explode(',', $bbox);
 
-        // optional: padding around viewport for smoother UX
-        /*$pad = 0.02;
-        $west  = (float)$west  - $pad;
-        $south = (float)$south - $pad;
-        $east  = (float)$east  + $pad;
-        $north = (float)$north + $pad;*/
-
         $locations = Location::query()
             ->whereBetween('lat', [(float)$south, (float)$north])
             ->whereBetween('lng', [(float)$west, (float)$east])
