@@ -9,10 +9,6 @@ use Illuminate\Database\Eloquent\Casts\AsCollection;
 class Item extends Model
 {
     protected $fillable = [
-        'title',
-        'description',
-        'lat',
-        'lng',
         'lost_at',
         'user_id',
         'library',
@@ -32,5 +28,18 @@ class Item extends Model
     public function location()
     {
         return $this->belongsTo(Location::class);
+    }
+
+    public function translations()
+    {
+        return $this->hasMany(ItemTranslation::class);
+    }
+
+    public function translation($locale = null)
+    {
+        $locale = $locale ?? app()->getLocale();
+
+        return $this->hasOne(ItemTranslation::class)
+            ->where('locale', $locale);
     }
 }

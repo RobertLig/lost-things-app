@@ -221,8 +221,8 @@ input:-moz-autofill {
     }
 }
 
-.marker-highlight {
-    animation: pulse 1s ease;
+.marker-pulse .marker-pin {
+    animation: pulse 1.2s ease-out;
 }
 
 @keyframes pulse {
@@ -235,4 +235,15 @@ input:-moz-autofill {
     100% {
         transform: scale(1);
     }
+}
+
+.marker-active .marker-pin {
+    background: var(--color-accent);
+
+    transform: scale(1.15);
+
+    box-shadow:
+        0 0 0 2px var(--color-background),
+        0 0 8px var(--color-accent),
+        0 0 18px var(--color-accent);
 }

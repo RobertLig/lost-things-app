@@ -1,6 +1,7 @@
 <?php
 
 use Livewire\Component;
+use App\Services\TranslationService;
 
 new class extends Component {
     public $title = '';
@@ -39,10 +40,31 @@ new class extends Component {
         // 2️⃣ create item with location_id
         $item = \App\Models\Item::create([
             'user_id' => auth()->id(),
-            'title' => $this->title,
-            'description' => $this->description,
             'lost_at' => $this->lost_at,
             'location_id' => $location->id,
+        ]);
+
+        $sourceLocale = app()->getLocale(); // 'pl' or 'en'
+        $targetLocale = $sourceLocale === 'pl' ? 'en' : 'pl';
+
+        // 3️⃣ translate
+        $translator = app(TranslationService::class);
+
+        $titleEn = $translator->translate($this->title, 'en');
+        $descEn = $translator->translate($this->description, 'en');
+
+        // 4️⃣ save translations
+        $item->translations()->createMany([
+            [
+                'locale' => 'pl',
+                'title' => $this->title,
+                'description' => $this->description,
+            ],
+            [
+                'locale' => 'en',
+                'title' => $titleEn,
+                'description' => $descEn,
+            ],
         ]);
 
         $this->createdItemId = $item->id;

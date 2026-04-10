@@ -125,15 +125,55 @@ export default class MarkerLayer extends BaseLayer {
         const el = marker.getElement();
         if (!el) return;
 
-        el.classList.add("marker-highlight");
+        // 🔒 prevent re-trigger on same marker
+        if (this.activeEl === el) {
+            // 🔁 re-trigger pulse only (no flyTo, no state change)
+            el.classList.remove("marker-pulse");
 
+            // force reflow so animation restarts
+            void el.offsetWidth;
+
+            el.classList.add("marker-pulse");
+
+            return;
+        }
+
+        const prevEl = this.activeEl;
+
+        // 🛑 cancel previous pending moveend handler (fast clicks protection)
+        if (this.moveHandler) {
+            this.map.off("moveend", this.moveHandler);
+            this.moveHandler = null;
+        }
+
+        // 🗺 move map
         this.map.flyTo(marker.getLatLng(), 15, {
             duration: 0.8,
         });
 
-        setTimeout(() => {
-            el.classList.remove("marker-highlight");
-        }, 2000);
+        // 🎬 define handler
+        this.moveHandler = () => {
+            // ✅ activate new marker FIRST
+            el.classList.add("marker-active");
+            el.classList.add("marker-pulse");
+
+            this.activeEl = el;
+
+            // ✅ remove previous AFTER new is active (no flicker)
+            if (prevEl && prevEl !== el) {
+                prevEl.classList.remove("marker-active");
+            }
+
+            // ✨ remove pulse only (keep active)
+            setTimeout(() => {
+                el.classList.remove("marker-pulse");
+            }, 1200);
+
+            this.moveHandler = null;
+        };
+
+        // 🎯 run once after movement
+        this.map.once("moveend", this.moveHandler);
     }
 
     createIcon(count) {
