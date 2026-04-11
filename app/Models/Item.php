@@ -39,7 +39,26 @@ class Item extends Model
     {
         $locale = $locale ?? app()->getLocale();
 
+        return $this->translations->firstWhere('locale', $locale)
+            ?? $this->translations->firstWhere('locale', config('app.fallback_locale'))
+            ?? $this->translations->first();
+    }
+
+    /* public function translation($locale = null)
+    {
+        $locale = $locale ?? app()->getLocale();
+
         return $this->hasOne(ItemTranslation::class)
             ->where('locale', $locale);
+    } */
+
+    public function getTitleAttribute()
+    {
+        return $this->translation()?->title;
+    }
+
+    public function getDescriptionAttribute()
+    {
+        return $this->translation()?->description;
     }
 }

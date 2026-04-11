@@ -26,7 +26,7 @@ new class extends Component {
             return collect();
         }
 
-        return Item::where('location_id', $this->locationId)->latest()->paginate(5); // 👈 adjust per page
+        return Item::with('translations')->where('location_id', $this->locationId)->latest()->paginate(5);
     }
 
     public function updatedPage()

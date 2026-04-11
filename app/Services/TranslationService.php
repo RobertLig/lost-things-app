@@ -1,11 +1,12 @@
 <?php
+
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 
 class TranslationService
 {
-    protected string $endpoint = 'https://libretranslate.com/translate';
+    protected string $endpoint = 'http://127.0.0.1:5000/translate';
 
     public function translate(string $text, string $target, string $source = 'auto'): string
     {
@@ -17,10 +18,23 @@ class TranslationService
                 'format' => 'text',
             ]);
 
-            return $response->json()['translatedText'] ?? $text;
+            if (!$response->successful()) {
+                \Log::error('Translation failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return $text;
+            }
+
+            $data = $response->json();
+
+            return $data['translatedText'] ?? $text;
 
         } catch (\Exception $e) {
-            // fallback → return original text
+            \Log::error('Translation exception', [
+                'message' => $e->getMessage(),
+            ]);
+
             return $text;
         }
     }
