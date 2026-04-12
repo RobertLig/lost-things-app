@@ -35,6 +35,7 @@ class Item extends Model
         return $this->hasMany(ItemTranslation::class);
     }
 
+    //UI tool
     public function translation($locale = null)
     {
         $locale = $locale ?? app()->getLocale();
@@ -44,13 +45,14 @@ class Item extends Model
             ?? $this->translations->first();
     }
 
-    /* public function translation($locale = null)
+    //database tool (filtering)
+    public function translationRelation($locale = null)
     {
         $locale = $locale ?? app()->getLocale();
 
         return $this->hasOne(ItemTranslation::class)
             ->where('locale', $locale);
-    } */
+    }
 
     public function getTitleAttribute()
     {
