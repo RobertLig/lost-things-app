@@ -12,6 +12,8 @@ new class extends Component {
 
     protected $listeners = ['locationSelected'];
 
+    protected string $paginationTheme = 'tailwind';
+
     public function locationSelected($locationId)
     {
         $this->locationId = $locationId;
