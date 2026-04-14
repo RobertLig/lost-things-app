@@ -7,4 +7,6 @@
     @endauth
 
     <livewire:map-sidebar />
+
+    <livewire:item-filters />
 </x-layouts::app>
