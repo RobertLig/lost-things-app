@@ -13,6 +13,28 @@ export default class MarkerLayer extends BaseLayer {
         this.isProcessingQueue = false;
 
         this.lastBbox = null;
+
+        this.filters = {};
+    }
+
+    clearMarkers() {
+        Object.values(this.markers).forEach((marker) => {
+            if (this.map.hasLayer(marker)) {
+                this.map.removeLayer(marker);
+            }
+        });
+
+        this.markers = {};
+        this.visibleMarkers.clear();
+    }
+
+    setFilters(filters) {
+        console.log("setFilters called", filters);
+
+        this.filters = filters;
+        this.lastBbox = null; // 🔥 force reload
+        this.clearMarkers();
+        this.loadMarkers();
     }
 
     onAdd() {
@@ -33,7 +55,12 @@ export default class MarkerLayer extends BaseLayer {
         if (this.lastBbox === bbox) return;
         this.lastBbox = bbox;
 
-        const points = await this.service.fetchPoints(bbox);
+        const points = await this.service.fetchPoints({
+            bbox,
+            filters: this.filters,
+        });
+
+        console.log("points from API", points);
 
         points.forEach((point) => {
             const key = point.id;

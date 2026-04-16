@@ -26,9 +26,14 @@ export default class Map extends BaseMap {
     }
 
     getInitialView() {
-        return {
+        /* return {
             center: [50.2649, 19.0238],
             zoom: 13,
+        }; */
+
+        return {
+            center: [52.0, 19.0],
+            zoom: 6, // 🔥 zoomed out
         };
     }
 
@@ -57,6 +62,18 @@ export default class Map extends BaseMap {
             this.layers.forEach((layer) => {
                 if (layer.highlight) {
                     layer.highlight(locationId);
+                }
+            });
+        });
+
+        Livewire.on("filtersUpdated", (payload) => {
+            const filters = payload[0]; // 🔥 FIX
+
+            console.log("JS received filtersUpdated", filters);
+
+            this.layers.forEach((layer) => {
+                if (layer.setFilters) {
+                    layer.setFilters(filters);
                 }
             });
         });
