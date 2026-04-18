@@ -15,6 +15,10 @@ export default class MarkerLayer extends BaseLayer {
         this.lastBbox = null;
 
         this.filters = {};
+
+        this.requestId = 0;
+
+        this.isAutoFitting = false;
     }
 
     clearMarkers() {
@@ -25,7 +29,14 @@ export default class MarkerLayer extends BaseLayer {
         });
 
         this.markers = {};
-        this.visibleMarkers.clear();
+
+        this.visibleMarkers = new Set();
+
+        // 🔥 CRITICAL FIX
+        this.addQueue = [];
+        this.isProcessingQueue = false;
+
+        console.log("markers after clear", Object.keys(this.markers).length);
     }
 
     setFilters(filters) {
@@ -33,7 +44,6 @@ export default class MarkerLayer extends BaseLayer {
 
         this.filters = filters;
         this.lastBbox = null; // 🔥 force reload
-        this.clearMarkers();
         this.loadMarkers();
     }
 
@@ -42,6 +52,8 @@ export default class MarkerLayer extends BaseLayer {
     }
 
     async loadMarkers() {
+        const currentRequestId = ++this.requestId;
+
         const bounds = this.map.getBounds();
         const padBounds = bounds.pad(0.2);
 
@@ -55,10 +67,21 @@ export default class MarkerLayer extends BaseLayer {
         if (this.lastBbox === bbox) return;
         this.lastBbox = bbox;
 
-        const points = await this.service.fetchPoints({
+        const data = await this.service.fetchPoints({
             bbox,
             filters: this.filters,
         });
+
+        // 🔥 IGNORE outdated responses
+        if (currentRequestId !== this.requestId) {
+            return;
+        }
+
+        // 🔥 CLEAR before adding new ones
+        this.clearMarkers();
+
+        const points = data.points;
+        const boundsData = data.bounds;
 
         console.log("points from API", points);
 
@@ -71,9 +94,43 @@ export default class MarkerLayer extends BaseLayer {
         });
 
         this.updateVisibility(bounds);
+
+        this.handleAutoFit(boundsData, points);
+    }
+
+    handleAutoFit(boundsData, points) {
+        console.log("AUTO FIT boundsData", boundsData);
+
+        if (!points.length || !boundsData) return;
+
+        const currentBounds = this.map.getBounds();
+
+        const hasVisible = points.some((point) =>
+            currentBounds.contains([Number(point.lat), Number(point.lng)]),
+        );
+
+        if (!hasVisible) {
+            this.isAutoFitting = true; // 🚨 LOCK
+
+            const leafletBounds = L.latLngBounds(
+                [Number(boundsData.south), Number(boundsData.west)],
+                [Number(boundsData.north), Number(boundsData.east)],
+            );
+
+            this.map.fitBounds(leafletBounds, {
+                padding: [50, 50],
+                maxZoom: 14,
+            });
+
+            this.map.once("moveend", () => {
+                this.isAutoFitting = false; // 🔓 UNLOCK
+            });
+        }
     }
 
     onMove(bounds) {
+        if (this.isAutoFitting) return; // 🚫 ignore auto-fit movement
+
         this.loadMarkers();
         this.updateVisibility(bounds);
     }

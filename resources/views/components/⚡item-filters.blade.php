@@ -141,7 +141,7 @@ new class extends Component {
     @endif
 
     {{-- 📦 Items list --}}
-    <div class="gap-3 sm:flex flex-wrap" id="filtered-items">
+    <div class="gap-3 flex flex-col sm:flex-row flex-wrap" id="filtered-items">
         @foreach ($this->items as $item)
             <div wire:key="item-{{ $item->id }}"
                 class="border border-border bg-surface text-surface-foreground rounded p-3">

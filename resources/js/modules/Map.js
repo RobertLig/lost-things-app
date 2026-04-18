@@ -26,15 +26,15 @@ export default class Map extends BaseMap {
     }
 
     getInitialView() {
-        /* return {
+        return {
             center: [50.2649, 19.0238],
             zoom: 13,
-        }; */
+        };
 
-        return {
+        /* return {
             center: [52.0, 19.0],
             zoom: 6, // 🔥 zoomed out
-        };
+        }; */
     }
 
     registerLayers() {
