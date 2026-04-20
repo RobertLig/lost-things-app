@@ -31,9 +31,17 @@ new class extends Component {
             'dateFrom' => $this->dateFrom,
             'dateTo' => $this->dateTo,
             'myItems' => $this->myItems,
+            'locale' => app()->getLocale(),
         ]);
 
-        return $query->latest('lost_at')->paginate(10);
+        $queryForDebug = clone $query;
+
+        logger('MAIN LIST IDS', [
+            'ids' => $queryForDebug->pluck('id')->sort()->values()->all(),
+            'count' => $queryForDebug->count(),
+        ]);
+
+        return $query->latest('lost_at')->paginate(10, pageName: 'item-filters');
     }
 
     public function updated($property)
@@ -49,6 +57,7 @@ new class extends Component {
             'dateFrom' => $this->dateFrom,
             'dateTo' => $this->dateTo,
             'myItems' => $this->myItems,
+            'locale' => app()->getLocale(),
         ]);
     }
 };

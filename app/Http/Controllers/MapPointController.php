@@ -30,11 +30,16 @@ class MapPointController extends Controller
 
         $baseQuery = Item::query();
 
+        logger('API LOCALE', [
+            'locale' => $request->locale
+        ]);
+
         ItemFilters::apply($baseQuery, [
             'search' => $request->search,
             'dateFrom' => $request->dateFrom,
             'dateTo' => $request->dateTo,
             'myItems' => $request->myItems,
+            'locale' => $request->locale,
         ]);
 
         /*
@@ -62,6 +67,11 @@ class MapPointController extends Controller
 
                 $loc = $items->first()->location;
 
+                logger('MARKER LOCATION', [
+                    'location_id' => $loc->id,
+                    'item_ids' => $items->pluck('id')->all(),
+                ]);
+
                 return [
                     'id' => $loc->id,
                     'lat' => (float) $loc->lat,
@@ -70,6 +80,8 @@ class MapPointController extends Controller
                 ];
             })
             ->values();
+
+        logger('POINTS', $points->toArray());
 
         /*
         |--------------------------------------------------------------------------
@@ -81,6 +93,11 @@ class MapPointController extends Controller
             ->whereHas('location')
             ->with('location')
             ->get();
+
+        logger('MAP IDS', [
+            'ids' => $allMatchingItems->pluck('id')->sort()->values()->all(),
+            'count' => $allMatchingItems->count(),
+        ]);
 
         $bounds = null;
 

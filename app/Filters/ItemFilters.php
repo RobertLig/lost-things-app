@@ -13,22 +13,25 @@ class ItemFilters
 
         return $query
 
-            ->when($filters['search'] ?? null, function ($query, $search) {
+            ->when(
+                $filters['search'] ?? null,
+                function ($query, $search) use ($filters) {
 
-                $query->whereHas('translations', function ($q) use ($search) {
+                    $query->whereHas('translations', function ($q) use ($search, $filters) {
 
-                    $q->where('locale', app()->getLocale())
-                      ->where(function ($q2) use ($search) {
+                        $q->where('locale', $filters['locale'])
+                        ->where(function ($q2) use ($search) {
 
-                          $q2->where('title', 'like', "%{$search}%")
-                             ->orWhere(
-                                 'description',
-                                 'like',
-                                 "%{$search}%"
-                             );
-                      });
-                });
-            })
+                            $q2->where('title', 'like', "%{$search}%")
+                                ->orWhere(
+                                    'description',
+                                    'like',
+                                    "%{$search}%"
+                                );
+                        });
+                    });
+                }
+            )
 
             ->when(
                 $filters['dateFrom'] ?? null,

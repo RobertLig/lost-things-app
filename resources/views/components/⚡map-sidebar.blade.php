@@ -4,21 +4,61 @@ use Livewire\Component;
 use App\Models\Item;
 use Livewire\WithPagination;
 use Livewire\WithoutUrlPagination;
+use App\Filters\ItemFilters;
 
 new class extends Component {
     use WithPagination, WithoutUrlPagination;
 
     public $locationId = null;
 
-    protected $listeners = ['locationSelected'];
+    protected $listeners = ['locationSelected', 'filtersUpdated' => 'filtersUpdated'];
 
     protected string $paginationTheme = 'tailwind';
 
+    public string $search = '';
+
+    public ?string $dateFrom = null;
+
+    public ?string $dateTo = null;
+
+    public bool $myItems = false;
+
+    public string $locale = 'en';
+
     public function locationSelected($locationId)
     {
+        logger('CLICKED LOCATION RECEIVED', [
+            'locationId' => $locationId,
+        ]);
+
         $this->locationId = $locationId;
 
         // 🔥 reset to page 1 when new marker clicked
+        $this->resetPage();
+    }
+
+    public function filtersUpdated($filters)
+    {
+        $this->search = $filters['search'] ?? '';
+
+        $this->dateFrom = $filters['dateFrom'] ?? null;
+
+        $this->dateTo = $filters['dateTo'] ?? null;
+
+        $this->myItems = $filters['myItems'] ?? false;
+
+        $this->locale = $filters['locale'] ?? app()->getLocale();
+
+        logger('SIDEBAR FILTERS', [
+            'search' => $this->search,
+            'dateFrom' => $this->dateFrom,
+            'dateTo' => $this->dateTo,
+            'myItems' => $this->myItems,
+        ]);
+
+        // close sidebar because selection may be invalid now
+        $this->locationId = null;
+
         $this->resetPage();
     }
 
@@ -28,7 +68,17 @@ new class extends Component {
             return collect();
         }
 
-        return Item::with('translations')->where('location_id', $this->locationId)->latest()->paginate(5);
+        $query = Item::query()->with('translations')->where('location_id', $this->locationId);
+
+        ItemFilters::apply($query, [
+            'search' => $this->search,
+            'dateFrom' => $this->dateFrom,
+            'dateTo' => $this->dateTo,
+            'myItems' => $this->myItems,
+            'locale' => $this->locale,
+        ]);
+
+        return $query->latest()->paginate(5);
     }
 
     public function updatedPage()
@@ -40,7 +90,7 @@ new class extends Component {
 
 <div id="sidebar-map" class="p-4 text-foreground relative overflow-y-auto">
     {{-- 🔄 SKELETON LOADER --}}
-    <div wire:loading.delay.short wire:target="locationSelected,page"
+    <div wire:loading.delay.short wire:target="locationSelected,filtersUpdated,page"
         class="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 p-4">
 
         <h3 class="font-bold mb-2">{{ __('Items in this location') }}</h3>

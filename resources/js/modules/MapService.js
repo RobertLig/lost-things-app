@@ -14,7 +14,10 @@ export default class MapService {
             dateFrom: filters.dateFrom ?? "",
             dateTo: filters.dateTo ?? "",
             myItems: filters.myItems ? 1 : 0,
+            locale: filters.locale ?? "en",
         });
+
+        console.log(params);
 
         const key = params.toString();
 

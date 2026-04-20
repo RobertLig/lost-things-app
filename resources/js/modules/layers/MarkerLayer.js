@@ -22,7 +22,9 @@ export default class MarkerLayer extends BaseLayer {
 
         this.shouldAutoFit = false;
 
-        this.hasFilteredBefore = false;
+        this.isProgrammaticMove = false;
+
+        this.lastRequestSignature = null;
     }
 
     clearMarkers() {
@@ -46,30 +48,15 @@ export default class MarkerLayer extends BaseLayer {
     setFilters(filters) {
         this.filters = filters;
 
-        this.lastBbox = null;
-
         const hasActiveFilters =
             filters.search ||
             filters.dateFrom ||
             filters.dateTo ||
             filters.myItems;
 
-        // 🚫 filters cleared
-        if (!hasActiveFilters) {
-            this.hasFilteredBefore = false;
-            this.shouldAutoFit = false;
+        this.shouldAutoFit = hasActiveFilters;
 
-            this.loadMarkers();
-            return;
-        }
-
-        // ✅ first actual filtering only
-        if (!this.hasFilteredBefore) {
-            this.shouldAutoFit = true;
-            this.hasFilteredBefore = true;
-        } else {
-            this.shouldAutoFit = false;
-        }
+        this.lastRequestSignature = null;
 
         this.loadMarkers();
     }
@@ -91,8 +78,16 @@ export default class MarkerLayer extends BaseLayer {
             padBounds.getNorth(),
         ].join(",");
 
-        if (this.lastBbox === bbox) return;
-        this.lastBbox = bbox;
+        const signature = JSON.stringify({
+            bbox,
+            filters: this.filters,
+        });
+
+        if (this.lastRequestSignature === signature) return;
+
+        this.lastRequestSignature = signature;
+
+        console.log(this.filters);
 
         const data = await this.service.fetchPoints({
             bbox,
@@ -153,9 +148,12 @@ export default class MarkerLayer extends BaseLayer {
     }
 
     onMove(bounds) {
-        if (this.isAutoFitting) return; // 🚫 ignore auto-fit movement
+        if (this.isAutoFitting) return;
+
+        if (this.isProgrammaticMove) return;
 
         this.loadMarkers();
+
         this.updateVisibility(bounds);
     }
 
@@ -255,12 +253,16 @@ export default class MarkerLayer extends BaseLayer {
         }
 
         // 🗺 move map
+        this.isProgrammaticMove = true;
+
         this.map.flyTo(marker.getLatLng(), 15, {
             duration: 0.8,
         });
 
         // 🎬 define handler
         this.moveHandler = () => {
+            this.isProgrammaticMove = false;
+
             // ✅ activate new marker FIRST
             el.classList.add("marker-active");
             el.classList.add("marker-pulse");
