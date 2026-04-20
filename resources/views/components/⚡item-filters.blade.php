@@ -5,6 +5,7 @@ use Livewire\Attributes\Url;
 use App\Models\Item;
 use Livewire\WithPagination;
 use Livewire\WithoutUrlPagination;
+use App\Filters\ItemFilters;
 
 new class extends Component {
     use WithPagination, WithoutUrlPagination;
@@ -21,57 +22,18 @@ new class extends Component {
     #[Url]
     public bool $myItems = false;
 
-    public ?float $north = null;
-    public ?float $south = null;
-    public ?float $east = null;
-    public ?float $west = null;
-
-    protected $listeners = ['mapBoundsUpdated'];
-
-    public function mapBoundsUpdated($bounds)
-    {
-        $this->north = $bounds['north'];
-        $this->south = $bounds['south'];
-        $this->east = $bounds['east'];
-        $this->west = $bounds['west'];
-
-        $this->resetPage();
-    }
-
     public function getItemsProperty()
     {
-        return Item::query()
-            ->with([
-                'translations' => function ($q) {
-                    $q->where('locale', app()->getLocale());
-                },
-                'location',
-            ])
-            ->when($this->search, function ($query) {
-                $query->whereHas('translations', function ($q) {
-                    $q->where('locale', app()->getLocale())->where(function ($q2) {
-                        $q2->where('title', 'like', "%{$this->search}%")->orWhere('description', 'like', "%{$this->search}%");
-                    });
-                });
-            })
-            ->when($this->dateFrom, fn($q) => $q->whereDate('lost_at', '>=', $this->dateFrom))
-            ->when($this->dateTo, fn($q) => $q->whereDate('lost_at', '<=', $this->dateTo))
-            ->when($this->myItems && auth()->check(), fn($q) => $q->where('user_id', auth()->id()))
-            ->when($this->north, function ($query) {
-                $query->whereHas('location', function ($q) {
-                    $south = $this->south;
-                    $north = $this->north;
-                    $west = $this->west;
-                    $east = $this->east;
+        $query = Item::query()->with(['translations', 'location']);
 
-                    // small padding (prevents edge clipping)
-                    $pad = 0.01;
+        ItemFilters::apply($query, [
+            'search' => $this->search,
+            'dateFrom' => $this->dateFrom,
+            'dateTo' => $this->dateTo,
+            'myItems' => $this->myItems,
+        ]);
 
-                    $q->whereBetween('lat', [$south - $pad, $north + $pad])->whereBetween('lng', [$west - $pad, $east + $pad]);
-                });
-            })
-            ->latest('lost_at')
-            ->paginate(10);
+        return $query->latest('lost_at')->paginate(10);
     }
 
     public function updated($property)

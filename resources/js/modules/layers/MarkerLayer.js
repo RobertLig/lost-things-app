@@ -19,6 +19,10 @@ export default class MarkerLayer extends BaseLayer {
         this.requestId = 0;
 
         this.isAutoFitting = false;
+
+        this.shouldAutoFit = false;
+
+        this.hasFilteredBefore = false;
     }
 
     clearMarkers() {
@@ -40,10 +44,33 @@ export default class MarkerLayer extends BaseLayer {
     }
 
     setFilters(filters) {
-        console.log("setFilters called", filters);
-
         this.filters = filters;
-        this.lastBbox = null; // 🔥 force reload
+
+        this.lastBbox = null;
+
+        const hasActiveFilters =
+            filters.search ||
+            filters.dateFrom ||
+            filters.dateTo ||
+            filters.myItems;
+
+        // 🚫 filters cleared
+        if (!hasActiveFilters) {
+            this.hasFilteredBefore = false;
+            this.shouldAutoFit = false;
+
+            this.loadMarkers();
+            return;
+        }
+
+        // ✅ first actual filtering only
+        if (!this.hasFilteredBefore) {
+            this.shouldAutoFit = true;
+            this.hasFilteredBefore = true;
+        } else {
+            this.shouldAutoFit = false;
+        }
+
         this.loadMarkers();
     }
 
@@ -95,37 +122,34 @@ export default class MarkerLayer extends BaseLayer {
 
         this.updateVisibility(bounds);
 
-        this.handleAutoFit(boundsData, points);
+        console.log("shouldAutoFit in loadMarkers", this.shouldAutoFit);
+
+        if (this.shouldAutoFit) {
+            this.handleAutoFit(boundsData, points);
+
+            this.shouldAutoFit = false; // 🔥 consume it (one-shot)
+        }
     }
 
     handleAutoFit(boundsData, points) {
-        console.log("AUTO FIT boundsData", boundsData);
+        if (!this.shouldAutoFit || !boundsData) return;
 
-        if (!points.length || !boundsData) return;
+        this.shouldAutoFit = false;
 
-        const currentBounds = this.map.getBounds();
+        this.isAutoFitting = true;
 
-        const hasVisible = points.some((point) =>
-            currentBounds.contains([Number(point.lat), Number(point.lng)]),
-        );
+        const leafletBounds = L.latLngBounds([
+            [Number(boundsData.south), Number(boundsData.west)],
+            [Number(boundsData.north), Number(boundsData.east)],
+        ]);
 
-        if (!hasVisible) {
-            this.isAutoFitting = true; // 🚨 LOCK
+        const zoom = Math.max(this.map.getBoundsZoom(leafletBounds), 6);
 
-            const leafletBounds = L.latLngBounds(
-                [Number(boundsData.south), Number(boundsData.west)],
-                [Number(boundsData.north), Number(boundsData.east)],
-            );
+        this.map.flyTo(leafletBounds.getCenter(), zoom, { duration: 0.8 });
 
-            this.map.fitBounds(leafletBounds, {
-                padding: [50, 50],
-                maxZoom: 14,
-            });
-
-            this.map.once("moveend", () => {
-                this.isAutoFitting = false; // 🔓 UNLOCK
-            });
-        }
+        this.map.once("moveend", () => {
+            this.isAutoFitting = false;
+        });
     }
 
     onMove(bounds) {
