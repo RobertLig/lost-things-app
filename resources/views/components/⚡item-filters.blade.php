@@ -60,6 +60,27 @@ new class extends Component {
             'locale' => app()->getLocale(),
         ]);
     }
+
+    public function resetFilters()
+    {
+        $this->search = '';
+
+        $this->dateFrom = null;
+
+        $this->dateTo = null;
+
+        $this->myItems = false;
+
+        $this->resetPage();
+
+        $this->dispatch('filtersUpdated', [
+            'search' => '',
+            'dateFrom' => null,
+            'dateTo' => null,
+            'myItems' => false,
+            'locale' => app()->getLocale(),
+        ]);
+    }
 };
 ?>
 
@@ -97,8 +118,7 @@ new class extends Component {
             @endauth
 
             {{-- 🔄 Reset --}}
-            <button wire:click="$set('search',''); $set('dateFrom',null); $set('dateTo',null); $set('myItems',false)"
-                class="text-sm text-foreground underline">
+            <button wire:click="resetFilters" class="text-sm text-foreground underline">
                 Reset filters
             </button>
 

@@ -25,6 +25,8 @@ export default class MarkerLayer extends BaseLayer {
         this.isProgrammaticMove = false;
 
         this.lastRequestSignature = null;
+
+        this.ignoreNextMove = false;
     }
 
     clearMarkers() {
@@ -48,15 +50,35 @@ export default class MarkerLayer extends BaseLayer {
     setFilters(filters) {
         this.filters = filters;
 
+        this.lastBbox = null;
+
         const hasActiveFilters =
             filters.search ||
             filters.dateFrom ||
             filters.dateTo ||
             filters.myItems;
 
-        this.shouldAutoFit = hasActiveFilters;
+        // filters cleared
+        if (!hasActiveFilters) {
+            this.hasFilteredBefore = false;
+            this.shouldAutoFit = false;
 
-        this.lastRequestSignature = null;
+            this.loadMarkers();
+            return;
+        }
+
+        // first actual filtering only
+        if (!this.hasFilteredBefore) {
+            this.shouldAutoFit = true;
+            this.hasFilteredBefore = true;
+        } else {
+            this.shouldAutoFit = false;
+        }
+
+        // ONLY suppress move reloads when NOT auto-fitting
+        if (!this.shouldAutoFit) {
+            this.ignoreNextMove = true;
+        }
 
         this.loadMarkers();
     }
@@ -105,6 +127,10 @@ export default class MarkerLayer extends BaseLayer {
         const points = data.points;
         const boundsData = data.bounds;
 
+        const serverTotal = points.reduce((sum, point) => sum + point.count, 0);
+
+        console.log("SERVER BADGE TOTAL", serverTotal);
+
         console.log("points from API", points);
 
         points.forEach((point) => {
@@ -148,6 +174,13 @@ export default class MarkerLayer extends BaseLayer {
     }
 
     onMove(bounds) {
+        console.log("LOAD from onMove");
+
+        if (this.ignoreNextMove) {
+            this.ignoreNextMove = false;
+            return;
+        }
+
         if (this.isAutoFitting) return;
 
         if (this.isProgrammaticMove) return;
@@ -211,6 +244,9 @@ export default class MarkerLayer extends BaseLayer {
     processQueue() {
         if (this.addQueue.length === 0) {
             this.isProcessingQueue = false;
+
+            this.verifyBadgeTotal();
+
             return;
         }
 
@@ -222,6 +258,16 @@ export default class MarkerLayer extends BaseLayer {
         this.visibleMarkers.add(key);
 
         setTimeout(() => this.processQueue(), 80);
+    }
+
+    verifyBadgeTotal() {
+        const total = Object.values(this.markers).reduce((sum, marker) => {
+            const badge = marker.getElement()?.querySelector(".marker-badge");
+
+            return sum + (badge ? parseInt(badge.innerText, 10) : 0);
+        }, 0);
+
+        console.log("RENDERED BADGE TOTAL", total);
     }
 
     highlight(id) {
