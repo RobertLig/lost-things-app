@@ -301,6 +301,8 @@ export default class MarkerLayer extends BaseLayer {
         // 🗺 move map
         this.isProgrammaticMove = true;
 
+        this.ignoreNextMove = true;
+
         this.map.flyTo(marker.getLatLng(), 15, {
             duration: 0.8,
         });
