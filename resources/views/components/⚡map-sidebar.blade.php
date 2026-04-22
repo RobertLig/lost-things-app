@@ -11,7 +11,7 @@ new class extends Component {
 
     public $locationId = null;
 
-    protected $listeners = ['locationSelected', 'filtersUpdated' => 'filtersUpdated'];
+    protected $listeners = ['locationSelected', 'filtersUpdated' => 'filtersUpdated', 'closeSidebar'];
 
     protected string $paginationTheme = 'tailwind';
 
@@ -60,6 +60,11 @@ new class extends Component {
         $this->locationId = null;
 
         $this->resetPage();
+    }
+
+    public function closeSidebar()
+    {
+        $this->locationId = null;
     }
 
     public function getItemsProperty()

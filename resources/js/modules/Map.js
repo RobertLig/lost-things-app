@@ -63,7 +63,10 @@ export default class Map extends BaseMap {
                     // ✅ markers update
                     layer.onMove(bounds);
 
-                    // ✅ Livewire update (LIST)
+                    // ✅ close sidebar ONLY on real user move
+                    Livewire.dispatch("closeSidebar");
+
+                    // ✅ update list
                     Livewire.dispatch("mapBoundsUpdated", {
                         bounds: {
                             west: bounds.getWest(),
