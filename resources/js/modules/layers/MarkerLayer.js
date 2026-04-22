@@ -26,6 +26,8 @@ export default class MarkerLayer extends BaseLayer {
 
         this.lastRequestSignature = null;
 
+        this.lastDispatchedSignature = null;
+
         this.ignoreNextMove = false;
     }
 
@@ -105,6 +107,7 @@ export default class MarkerLayer extends BaseLayer {
             filters: this.filters,
         });
 
+        // 🚫 skip identical requests
         if (this.lastRequestSignature === signature) return;
 
         this.lastRequestSignature = signature;
@@ -129,7 +132,7 @@ export default class MarkerLayer extends BaseLayer {
 
         const serverTotal = points.reduce((sum, point) => sum + point.count, 0);
 
-        console.log("SERVER BADGE TOTAL", serverTotal);
+        console.log("SERVER TOTAL (PADDED)", serverTotal);
 
         console.log("points from API", points);
 
@@ -141,7 +144,17 @@ export default class MarkerLayer extends BaseLayer {
             this.add(point);
         });
 
+        console.log(
+            "TOTAL MARKERS (fetched)",
+            Object.keys(this.markers).length,
+        );
+
         this.updateVisibility(bounds);
+
+        console.log(
+            "VISIBLE MARKERS (after updateVisibility)",
+            this.visibleMarkers.size,
+        );
 
         console.log("shouldAutoFit in loadMarkers", this.shouldAutoFit);
 
@@ -261,13 +274,18 @@ export default class MarkerLayer extends BaseLayer {
     }
 
     verifyBadgeTotal() {
-        const total = Object.values(this.markers).reduce((sum, marker) => {
+        const total = Array.from(this.visibleMarkers).reduce((sum, key) => {
+            const marker = this.markers[key];
+            if (!marker) return sum;
+
             const badge = marker.getElement()?.querySelector(".marker-badge");
 
             return sum + (badge ? parseInt(badge.innerText, 10) : 0);
         }, 0);
 
-        console.log("RENDERED BADGE TOTAL", total);
+        console.log("VISIBLE MARKERS (rendered)", this.visibleMarkers.size);
+
+        console.log("VISIBLE TOTAL (UI)", total);
     }
 
     highlight(id) {

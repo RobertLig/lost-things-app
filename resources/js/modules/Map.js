@@ -51,7 +51,27 @@ export default class Map extends BaseMap {
                 const bounds = this.map.getBounds();
 
                 this.layers.forEach((layer) => {
+                    // 🔒 respect layer protections
+                    if (layer.ignoreNextMove) {
+                        layer.ignoreNextMove = false;
+                        return;
+                    }
+
+                    if (layer.isProgrammaticMove) return;
+                    if (layer.isAutoFitting) return;
+
+                    // ✅ markers update
                     layer.onMove(bounds);
+
+                    // ✅ Livewire update (LIST)
+                    Livewire.dispatch("mapBoundsUpdated", {
+                        bounds: {
+                            west: bounds.getWest(),
+                            south: bounds.getSouth(),
+                            east: bounds.getEast(),
+                            north: bounds.getNorth(),
+                        },
+                    });
                 });
             }, 200);
         });

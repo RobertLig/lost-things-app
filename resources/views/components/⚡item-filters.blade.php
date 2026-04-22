@@ -22,6 +22,25 @@ new class extends Component {
     #[Url]
     public bool $myItems = false;
 
+    public $bounds = null;
+
+    protected $listeners = ['mapBoundsUpdated'];
+
+    public function mapBoundsUpdated($bounds = null)
+    {
+        if (!$bounds) {
+            return;
+        }
+
+        if ($this->bounds === $bounds) {
+            return;
+        }
+
+        $this->bounds = $bounds;
+
+        $this->resetPage();
+    }
+
     public function getItemsProperty()
     {
         $query = Item::query()->with(['translations', 'location']);
@@ -33,6 +52,12 @@ new class extends Component {
             'myItems' => $this->myItems,
             'locale' => app()->getLocale(),
         ]);
+
+        if ($this->bounds) {
+            $query->whereHas('location', function ($q) {
+                $q->whereBetween('lat', [$this->bounds['south'], $this->bounds['north']])->whereBetween('lng', [$this->bounds['west'], $this->bounds['east']]);
+            });
+        }
 
         $queryForDebug = clone $query;
 
