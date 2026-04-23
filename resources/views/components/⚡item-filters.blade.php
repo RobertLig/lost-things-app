@@ -114,12 +114,12 @@ new class extends Component {
 
     {{-- 🔎 Search --}}
     <flux:input wire:model.live.debounce.300ms="search" name="search" :label="__('Search')" type="text" autofocus
-        placeholder="Search lost items..." clearable />
+        :placeholder="__('Search lost items...')" clearable />
 
     {{-- ⚙️ Filters toggle --}}
     <details class="border border-border rounded">
         <summary class="cursor-pointer px-3 py-2 font-medium text-foreground">
-            Filters
+            {{ __('Filters') }}
         </summary>
 
         <div class="p-3 space-y-3">
@@ -136,7 +136,7 @@ new class extends Component {
                 <flux:field variant="inline">
                     <flux:checkbox wire:model.live="myItems" />
 
-                    <flux:label class="text-foreground">Only my items</flux:label>
+                    <flux:label class="text-foreground">{{ __('Only my items') }}</flux:label>
 
                     <flux:error name="myItems" class="text-foreground" />
                 </flux:field>
@@ -144,7 +144,7 @@ new class extends Component {
 
             {{-- 🔄 Reset --}}
             <button wire:click="resetFilters" class="text-sm text-foreground underline">
-                Reset filters
+                {{ __('Reset filters') }}
             </button>
 
         </div>
@@ -152,7 +152,7 @@ new class extends Component {
 
     @if ($this->items->isEmpty())
         <div class="text-center text-surface-foreground/50 py-6">
-            No items found
+            {{ __('No items found') }}
         </div>
     @endif
 
@@ -160,20 +160,31 @@ new class extends Component {
     <div class="gap-3 flex flex-col sm:flex-row flex-wrap" id="filtered-items">
         @foreach ($this->items as $item)
             <div wire:key="item-{{ $item->id }}"
-                class="border border-border bg-surface text-surface-foreground rounded p-3">
+                class="border border-border bg-surface text-surface-foreground rounded p-3 flex">
+                <div>
+                    <div class="font-semibold">
+                        {{ $item->translation()?->title }}
+                    </div>
 
-                <div class="font-semibold">
-                    {{ $item->translation()?->title }}
+                    <div class="text-sm text-surface-foreground/50">
+                        {{ $item->lost_at->format('Y-m-d') }}
+                    </div>
+
+                    @if ($item->library->isNotEmpty())
+                        <img src="{{ $item->library[0]['url'] }}" class="mt-2 rounded max-h-40 object-cover">
+                    @endif
                 </div>
-
-                <div class="text-sm text-surface-foreground/50">
-                    {{ $item->lost_at->format('Y-m-d') }}
+                <div class="sm:mt-5 ps-2 flex flex-col gap-1 items-end w-full">
+                    <flux:button size="sm">
+                        {{ __('Details') }}
+                    </flux:button>
+                    <flux:button size="sm">
+                        {{ __('Edit') }}
+                    </flux:button>
+                    <flux:button variant="danger" size="sm">
+                        {{ __('Delete') }}
+                    </flux:button>
                 </div>
-
-                @if ($item->library->isNotEmpty())
-                    <img src="{{ $item->library[0]['url'] }}" class="mt-2 rounded max-h-40 object-cover">
-                @endif
-
             </div>
         @endforeach
     </div>

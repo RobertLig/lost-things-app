@@ -89,5 +89,15 @@
     "Showing": "Pokazując",
     "to": "do",
     "of": "z",
-    "results": "wyników"
+    "results": "wyników",
+    "Search": "Szukaj",
+    "Search lost items...": "Szukaj zgubione przedmioty",
+    "Filters": "Filtry",
+    "Date From": "Od daty",
+    "Date To": "Do daty",
+    "Only my items": "Tylko moje przedmioty",
+    "Reset filters": "Resetuj filtry",
+    "No items found": "Nie znaleziono przedmiotów",
+    "Details": "Szczegóły",
+    "Edit": "Edtytuj"
 }
