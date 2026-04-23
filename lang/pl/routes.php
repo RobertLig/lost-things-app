@@ -24,5 +24,6 @@ return [
 
     'items' => [
         'create' => 'przedmioty/dodaj',
+        'edit' => 'przedmioty/{item}/edytuj'
     ]
 ];

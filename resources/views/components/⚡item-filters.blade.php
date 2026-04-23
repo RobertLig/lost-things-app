@@ -178,10 +178,10 @@ new class extends Component {
                     <flux:button size="sm">
                         {{ __('Details') }}
                     </flux:button>
-                    <flux:button size="sm">
+                    <flux:button size="sm" href="https://google.com">
                         {{ __('Edit') }}
                     </flux:button>
-                    <flux:button variant="danger" size="sm">
+                    <flux:button variant="danger" size="sm" icon="trash">
                         {{ __('Delete') }}
                     </flux:button>
                 </div>

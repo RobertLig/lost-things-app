@@ -24,5 +24,6 @@ return [
 
     'items' => [
         'create' => 'items/create',
+        'edit' => 'items/{item}/edit'
     ]
 ];

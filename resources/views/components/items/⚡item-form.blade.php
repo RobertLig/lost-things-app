@@ -10,11 +10,27 @@ new class extends Component {
     public $lng;
     public $lost_at;
     public $createdItemId;
+    public ?\App\Models\Item $item = null;
 
     protected $listeners = [
         'libraryValidated' => 'saveItemWithImages',
         'library-saved' => 'redirectAfterSave',
     ];
+
+    public function mount(\App\Models\Item $item = null)
+    {
+        if ($item) {
+            $this->item = $item;
+
+            $translation = $item->translation();
+
+            $this->title = $translation->title;
+            $this->description = $translation->description;
+            $this->lat = $item->location->lat;
+            $this->lng = $item->location->lng;
+            $this->lost_at = $item->lost_at;
+        }
+    }
 
     public function save()
     {
@@ -30,6 +46,47 @@ new class extends Component {
     }
 
     public function saveItemWithImages(TranslationService $translator)
+    {
+        if ($this->item) {
+            $this->updateItem($translator);
+        } else {
+            $this->createItem($translator);
+        }
+    }
+
+    protected function updateItem(TranslationService $translator)
+    {
+        $location = \App\Models\Location::firstOrCreate([
+            'lat' => round($this->lat, 6),
+            'lng' => round($this->lng, 6),
+        ]);
+
+        $this->item->update([
+            'lost_at' => $this->lost_at,
+            'location_id' => $location->id,
+        ]);
+
+        // update translations instead of creating new ones
+        foreach ($this->item->translations as $translation) {
+            if ($translation->locale === app()->getLocale()) {
+                $translation->update([
+                    'title' => $this->title,
+                    'description' => $this->description,
+                ]);
+            } else {
+                $translation->update([
+                    'title' => $translator->translate($this->title, $translation->locale),
+                    'description' => $translator->translate($this->description, $translation->locale),
+                ]);
+            }
+        }
+
+        $this->createdItemId = $this->item->id;
+
+        $this->dispatch('updateLibraryModel', modelId: $this->item->id);
+    }
+
+    public function createItem(TranslationService $translator)
     {
         // 1️⃣ find or create location
         $location = \App\Models\Location::firstOrCreate([
@@ -92,6 +149,70 @@ new class extends Component {
         // 3️⃣ trigger image saving
         $this->dispatch('updateLibraryModel', modelId: $item->id);
     }
+
+    /* public function saveItemWithImages(TranslationService $translator)
+    {
+        // 1️⃣ find or create location
+        $location = \App\Models\Location::firstOrCreate([
+            'lat' => round($this->lat, 6),
+            'lng' => round($this->lng, 6),
+        ]);
+
+        // 2️⃣ create item with location_id
+        $item = \App\Models\Item::create([
+            'user_id' => auth()->id(),
+            'lost_at' => $this->lost_at,
+            //'library' => [], //uncomment if error with library when creating lost item
+            'location_id' => $location->id,
+        ]);
+
+        // 3️⃣ translate
+        //$translator = app(TranslationService::class);
+
+        $sourceLocale = app()->getLocale(); // 'pl' or 'en'
+        $targetLocale = $sourceLocale === 'pl' ? 'en' : 'pl';
+
+        if ($sourceLocale === 'pl') {
+            $titleEn = $translator->translate($this->title, 'en');
+            $descEn = $translator->translate($this->description, 'en');
+
+            // 4️⃣ save translations
+            $item->translations()->createMany([
+                [
+                    'locale' => 'pl',
+                    'title' => $this->title,
+                    'description' => $this->description,
+                ],
+                [
+                    'locale' => 'en',
+                    'title' => $titleEn,
+                    'description' => $descEn,
+                ],
+            ]);
+        } elseif ($sourceLocale === 'en') {
+            $titlePl = $translator->translate($this->title, 'pl');
+            $descPl = $translator->translate($this->description, 'pl');
+
+            // 4️⃣ save translations
+            $item->translations()->createMany([
+                [
+                    'locale' => 'pl',
+                    'title' => $titlePl,
+                    'description' => $descPl,
+                ],
+                [
+                    'locale' => 'en',
+                    'title' => $this->title,
+                    'description' => $this->description,
+                ],
+            ]);
+        }
+
+        $this->createdItemId = $item->id;
+
+        // 3️⃣ trigger image saving
+        $this->dispatch('updateLibraryModel', modelId: $item->id);
+    } */
 
     public function redirectAfterSave()
     {

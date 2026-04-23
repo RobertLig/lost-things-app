@@ -62,8 +62,18 @@ Route::group(
 
         Route::livewire(
             LaravelLocalization::transRoute('routes.items.create'),
+            'items.item-form'
+        )->name('items.item-form')->middleware('auth');
+
+        Route::livewire(
+            LaravelLocalization::transRoute('routes.items.edit'),
+            'items.item-form'
+        )->name('items.item-form')->middleware('auth');
+
+        /* Route::livewire(
+            LaravelLocalization::transRoute('routes.items.create'),
             'items.create-item'
-        )->name('items.create')->middleware('auth');
+        )->name('items.create')->middleware('auth'); */
 
         Route::get('/', function () {
             return view('home'); //welcome
