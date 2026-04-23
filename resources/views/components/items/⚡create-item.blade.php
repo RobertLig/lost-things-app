@@ -41,6 +41,7 @@ new class extends Component {
         $item = \App\Models\Item::create([
             'user_id' => auth()->id(),
             'lost_at' => $this->lost_at,
+            //'library' => [], //uncomment if error with library when craeating lost item
             'location_id' => $location->id,
         ]);
 

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Casts\AsCollection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Item extends Model
 {
@@ -22,6 +23,14 @@ class Item extends Model
         'lost_at' => 'datetime',
         'library' => AsCollection::class,
     ];
+
+    protected function library(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => collect(json_decode($value ?? '[]', true)),
+            set: fn ($value) => $value ?? [],
+        );
+    }
 
     public function user(): BelongsTo
     {

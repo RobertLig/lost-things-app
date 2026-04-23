@@ -148,7 +148,7 @@ class SortableImageLibrary extends Component
 
         // Save to DB if model available
         if ($this->model) {
-            $this->model->library = empty($finalImages) ? null : $finalImages;
+            $this->model->library = empty($finalImages) ? null : $finalImages; // [] if true?
             $this->model->save();
         }
 
