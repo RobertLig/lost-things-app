@@ -70,6 +70,11 @@ Route::group(
             'items.item-form'
         )->name('items.item-edit')->middleware(['auth', 'can:update,item']);
 
+        Route::livewire(
+            LaravelLocalization::transRoute('routes.items.show'),
+            'items.item-show'
+        )->name('items.item-show');
+
         Route::get('/', function () {
             return view('home'); //welcome
         })->name('home');

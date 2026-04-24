@@ -6,6 +6,14 @@ document.addEventListener("livewire:navigated", () => {
     const el = document.getElementById("map");
     if (!el) return;
 
+    delete L.Icon.Default.prototype._getIconUrl;
+
+    L.Icon.Default.mergeOptions({
+        iconUrl: null,
+        iconRetinaUrl: null,
+        shadowUrl: null,
+    });
+
     mapInstance = new Map({ el });
     mapInstance.init();
 });
@@ -55,3 +63,28 @@ function registerGlobalListeners() {
 }
 
 registerGlobalListeners();
+
+import ShowMap from "./modules/ShowMap";
+
+let showMapInstance = null;
+
+document.addEventListener("livewire:navigated", () => {
+    const el = document.getElementById("show-map");
+    if (!el) return;
+
+    if (showMapInstance) {
+        showMapInstance.destroy();
+        showMapInstance = null;
+    }
+
+    const lat = parseFloat(el.dataset.lat);
+    const lng = parseFloat(el.dataset.lng);
+
+    showMapInstance = new ShowMap({
+        el,
+        lat,
+        lng,
+    });
+
+    showMapInstance.init();
+});

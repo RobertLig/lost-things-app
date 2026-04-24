@@ -188,7 +188,7 @@ new class extends Component {
                     @endif
                 </div>
                 <div class="sm:mt-5 ps-2 flex flex-col gap-1 items-end w-full">
-                    <flux:button size="sm">
+                    <flux:button size="sm" :href="route('items.item-show', $item)" wire:navigate>
                         {{ __('Details') }}
                     </flux:button>
                     @can('update', $item)

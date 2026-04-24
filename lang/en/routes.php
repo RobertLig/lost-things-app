@@ -24,6 +24,7 @@ return [
 
     'items' => [
         'create' => 'items/create',
-        'edit' => 'items/{item}/edit'
+        'edit' => 'items/{item}/edit',
+        'show' => 'items/{item}'
     ]
 ];

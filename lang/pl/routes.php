@@ -24,6 +24,7 @@ return [
 
     'items' => [
         'create' => 'przedmioty/dodaj',
-        'edit' => 'przedmioty/{item}/edytuj'
+        'edit' => 'przedmioty/{item}/edytuj',
+        'show' => 'przedmioty/{item}'
     ]
 ];
