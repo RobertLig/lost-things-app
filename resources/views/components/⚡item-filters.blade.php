@@ -198,8 +198,7 @@ new class extends Component {
                     @endcan
                     @can('delete', $item)
                         <flux:button variant="danger" size="sm" icon="trash"
-                            wire:click="deleteItem({{ $item }})"
-                            onclick="return confirm({{ __('Are you sure?') }})">
+                            wire:click="deleteItem({{ $item }})" wire:confirm="{{ __('Are you sure?') }}">
                             {{ __('Delete') }}
                         </flux:button>
                     @endcan
