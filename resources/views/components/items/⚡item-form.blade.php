@@ -2,6 +2,7 @@
 
 use Livewire\Component;
 use App\Services\TranslationService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 new class extends Component {
     public $title = '';
@@ -21,6 +22,8 @@ new class extends Component {
     {
         //dd($item->lost_at);
         if ($item) {
+            $this->authorize('update', $item);
+
             $this->item = $item;
 
             $translation = $item->translation();

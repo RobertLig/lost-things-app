@@ -106,6 +106,19 @@ new class extends Component {
             'locale' => app()->getLocale(),
         ]);
     }
+
+    public function deleteItem(\App\Models\Item $item)
+    {
+        $this->authorize('delete', $item);
+
+        foreach ($item->library ?? [] as $img) {
+            \Storage::disk('public')->delete($img['path']);
+        }
+
+        $item->delete();
+
+        $this->resetPage();
+    }
 };
 ?>
 
@@ -178,12 +191,18 @@ new class extends Component {
                     <flux:button size="sm">
                         {{ __('Details') }}
                     </flux:button>
-                    <flux:button size="sm" :href="route('items.item-edit', $item)">
-                        {{ __('Edit') }}
-                    </flux:button>
-                    <flux:button variant="danger" size="sm" icon="trash">
-                        {{ __('Delete') }}
-                    </flux:button>
+                    @can('update', $item)
+                        <flux:button size="sm" :href="route('items.item-edit', $item)">
+                            {{ __('Edit') }}
+                        </flux:button>
+                    @endcan
+                    @can('delete', $item)
+                        <flux:button variant="danger" size="sm" icon="trash"
+                            wire:click="deleteItem({{ $item }})"
+                            onclick="return confirm({{ __('Are you sure?') }})">
+                            {{ __('Delete') }}
+                        </flux:button>
+                    @endcan
                 </div>
             </div>
         @endforeach

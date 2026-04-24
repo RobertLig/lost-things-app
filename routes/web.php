@@ -68,12 +68,7 @@ Route::group(
         Route::livewire(
             LaravelLocalization::transRoute('routes.items.edit'),
             'items.item-form'
-        )->name('items.item-edit')->middleware('auth');
-
-        /* Route::livewire(
-            LaravelLocalization::transRoute('routes.items.create'),
-            'items.create-item'
-        )->name('items.create')->middleware('auth'); */
+        )->name('items.item-edit')->middleware(['auth', 'can:update,item']);
 
         Route::get('/', function () {
             return view('home'); //welcome
