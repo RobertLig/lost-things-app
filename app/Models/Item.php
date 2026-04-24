@@ -24,14 +24,6 @@ class Item extends Model
         'library' => AsCollection::class,
     ];
 
-    protected function library(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => collect(json_decode($value ?? '[]', true)),
-            set: fn ($value) => $value ?? [],
-        );
-    }
-
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

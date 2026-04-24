@@ -178,7 +178,7 @@ new class extends Component {
                     <flux:button size="sm">
                         {{ __('Details') }}
                     </flux:button>
-                    <flux:button size="sm" href="https://google.com">
+                    <flux:button size="sm" :href="route('items.item-edit', $item)">
                         {{ __('Edit') }}
                     </flux:button>
                     <flux:button variant="danger" size="sm" icon="trash">

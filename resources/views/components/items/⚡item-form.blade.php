@@ -19,6 +19,7 @@ new class extends Component {
 
     public function mount(\App\Models\Item $item = null)
     {
+        //dd($item->lost_at);
         if ($item) {
             $this->item = $item;
 
@@ -28,7 +29,7 @@ new class extends Component {
             $this->description = $translation->description;
             $this->lat = $item->location->lat;
             $this->lng = $item->location->lng;
-            $this->lost_at = $item->lost_at;
+            $this->lost_at = $item->lost_at?->format('Y-m-d');
         }
     }
 
@@ -62,7 +63,7 @@ new class extends Component {
         ]);
 
         $this->item->update([
-            'lost_at' => $this->lost_at,
+            'lost_at' => \Carbon\Carbon::parse($this->lost_at),
             'location_id' => $location->id,
         ]);
 
@@ -97,8 +98,8 @@ new class extends Component {
         // 2️⃣ create item with location_id
         $item = \App\Models\Item::create([
             'user_id' => auth()->id(),
-            'lost_at' => $this->lost_at,
-            //'library' => [], //uncomment if error with library when creating lost item
+            'lost_at' => \Carbon\Carbon::parse($this->lost_at),
+            'library' => [],
             'location_id' => $location->id,
         ]);
 
@@ -149,70 +150,6 @@ new class extends Component {
         // 3️⃣ trigger image saving
         $this->dispatch('updateLibraryModel', modelId: $item->id);
     }
-
-    /* public function saveItemWithImages(TranslationService $translator)
-    {
-        // 1️⃣ find or create location
-        $location = \App\Models\Location::firstOrCreate([
-            'lat' => round($this->lat, 6),
-            'lng' => round($this->lng, 6),
-        ]);
-
-        // 2️⃣ create item with location_id
-        $item = \App\Models\Item::create([
-            'user_id' => auth()->id(),
-            'lost_at' => $this->lost_at,
-            //'library' => [], //uncomment if error with library when creating lost item
-            'location_id' => $location->id,
-        ]);
-
-        // 3️⃣ translate
-        //$translator = app(TranslationService::class);
-
-        $sourceLocale = app()->getLocale(); // 'pl' or 'en'
-        $targetLocale = $sourceLocale === 'pl' ? 'en' : 'pl';
-
-        if ($sourceLocale === 'pl') {
-            $titleEn = $translator->translate($this->title, 'en');
-            $descEn = $translator->translate($this->description, 'en');
-
-            // 4️⃣ save translations
-            $item->translations()->createMany([
-                [
-                    'locale' => 'pl',
-                    'title' => $this->title,
-                    'description' => $this->description,
-                ],
-                [
-                    'locale' => 'en',
-                    'title' => $titleEn,
-                    'description' => $descEn,
-                ],
-            ]);
-        } elseif ($sourceLocale === 'en') {
-            $titlePl = $translator->translate($this->title, 'pl');
-            $descPl = $translator->translate($this->description, 'pl');
-
-            // 4️⃣ save translations
-            $item->translations()->createMany([
-                [
-                    'locale' => 'pl',
-                    'title' => $titlePl,
-                    'description' => $descPl,
-                ],
-                [
-                    'locale' => 'en',
-                    'title' => $this->title,
-                    'description' => $this->description,
-                ],
-            ]);
-        }
-
-        $this->createdItemId = $item->id;
-
-        // 3️⃣ trigger image saving
-        $this->dispatch('updateLibraryModel', modelId: $item->id);
-    } */
 
     public function redirectAfterSave()
     {
@@ -226,7 +163,7 @@ new class extends Component {
 <div class="max-w-xl mx-auto py-6 space-y-4">
 
     <flux:heading size="lg">
-        {{ __('Create Lost Item') }}
+        {{ $item ? __('Edit Lost Item') : __('Create Lost Item') }}
     </flux:heading>
 
     <form wire:submit.prevent="save" class="space-y-4">
@@ -244,13 +181,13 @@ new class extends Component {
         </div>
 
         {{-- 📸 Images --}}
-        <livewire:sortable-image-library />
+        <livewire:sortable-image-library :model="$item" />
 
         <flux:input wire:model.lazy="lat" type="number" step="any" :label="__('Latitude')" />
 
         <flux:input wire:model.lazy="lng" type="number" step="any" :label="__('Longitude')" />
 
-        <flux:input wire:model="lost_at" type="date" :label="__('Lost at')" />
+        <flux:input wire:model.lazy="lost_at" type="date" :label="__('Lost at')" />
 
         <flux:button type="submit">
             {{ __('Save') }}

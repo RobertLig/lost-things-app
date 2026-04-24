@@ -63,12 +63,12 @@ Route::group(
         Route::livewire(
             LaravelLocalization::transRoute('routes.items.create'),
             'items.item-form'
-        )->name('items.item-form')->middleware('auth');
+        )->name('items.item-create')->middleware('auth');
 
         Route::livewire(
             LaravelLocalization::transRoute('routes.items.edit'),
             'items.item-form'
-        )->name('items.item-form')->middleware('auth');
+        )->name('items.item-edit')->middleware('auth');
 
         /* Route::livewire(
             LaravelLocalization::transRoute('routes.items.create'),
