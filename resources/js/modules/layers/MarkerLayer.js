@@ -1,4 +1,5 @@
 import BaseLayer from "./BaseLayer";
+//import { createMarkerIcon } from "../MarkerFactory"; doesn't work
 
 export default class MarkerLayer extends BaseLayer {
     constructor(map, service) {
@@ -213,6 +214,7 @@ export default class MarkerLayer extends BaseLayer {
 
         const marker = L.marker([point.lat, point.lng], {
             icon: this.createIcon(point.count),
+            //icon: createMarkerIcon(point.count), //doesn't work
         });
 
         marker.on("click", () => {

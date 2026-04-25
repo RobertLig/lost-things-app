@@ -6,14 +6,6 @@ document.addEventListener("livewire:navigated", () => {
     const el = document.getElementById("map");
     if (!el) return;
 
-    delete L.Icon.Default.prototype._getIconUrl;
-
-    L.Icon.Default.mergeOptions({
-        iconUrl: null,
-        iconRetinaUrl: null,
-        shadowUrl: null,
-    });
-
     mapInstance = new Map({ el });
     mapInstance.init();
 });

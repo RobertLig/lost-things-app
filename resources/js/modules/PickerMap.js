@@ -1,4 +1,5 @@
 import BaseMap from "./BaseMap";
+import { createMarkerIcon } from "./MarkerFactory";
 
 export default class PickerMap extends BaseMap {
     constructor({ el, component }) {
@@ -76,6 +77,7 @@ export default class PickerMap extends BaseMap {
         }
 
         this.marker = L.marker([lat, lng], {
+            icon: createMarkerIcon(), // ✅ same marker
             draggable: true,
         }).addTo(this.map);
 

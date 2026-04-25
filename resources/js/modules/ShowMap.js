@@ -1,5 +1,6 @@
 // resources/js/modules/ShowMap.js
 import BaseMap from "./BaseMap";
+import { createMarkerIcon } from "./MarkerFactory";
 
 export default class ShowMap extends BaseMap {
     constructor({ el, lat, lng }) {
@@ -10,7 +11,7 @@ export default class ShowMap extends BaseMap {
         this.marker = null;
     }
 
-    createIcon() {
+    /* createIcon() {
         return L.divIcon({
             className: "",
             html: `
@@ -21,7 +22,7 @@ export default class ShowMap extends BaseMap {
             iconSize: [30, 42],
             iconAnchor: [15, 42],
         });
-    }
+    } */
 
     init() {
         if (!this.lat || !this.lng) return;
@@ -34,6 +35,7 @@ export default class ShowMap extends BaseMap {
         });
 
         this.marker = L.marker([this.lat, this.lng], {
+            icon: createMarkerIcon(),
             draggable: false,
         }).addTo(this.map);
     }
