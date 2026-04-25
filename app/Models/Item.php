@@ -67,4 +67,9 @@ class Item extends Model
     {
         return $this->translation()?->description;
     }
+
+    public function conversations()
+    {
+        return $this->hasMany(Conversation::class);
+    }
 }
