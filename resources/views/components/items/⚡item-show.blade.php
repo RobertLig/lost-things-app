@@ -2,6 +2,7 @@
 
 use Livewire\Component;
 use App\Models\Item;
+use App\Models\Conversation;
 
 new class extends Component {
     public $title = '';
@@ -22,6 +23,39 @@ new class extends Component {
         $this->lat = $item->location->lat;
         $this->lng = $item->location->lng;
         $this->lost_at = $item->lost_at?->format('M d, Y');
+    }
+
+    public function contactOwner()
+    {
+        $userId = auth()->id();
+
+        // ❗ Not logged in
+        if (!$userId) {
+            return redirect()->route('login');
+        }
+
+        // ❗ Prevent messaging yourself
+        if ($this->item->user_id === $userId) {
+            return;
+        }
+
+        // 🔍 Find existing conversation
+        $conversation = Conversation::where('item_id', $this->item->id)->whereHas('participants', fn($q) => $q->where('user_id', $userId))->whereHas('participants', fn($q) => $q->where('user_id', $this->item->user_id))->first();
+
+        // 🆕 Create if not exists
+        if (!$conversation) {
+            $conversation = Conversation::create([
+                'item_id' => $this->item->id,
+                'created_by' => $userId,
+            ]);
+
+            $conversation->participants()->attach([$userId, $this->item->user_id]);
+        }
+
+        // 👉 Redirect to messages
+        return redirect()->route('messages', [
+            'conversation' => $conversation->id,
+        ]);
     }
 };
 ?>
@@ -66,6 +100,24 @@ new class extends Component {
             </p>
         </div>
 
+    </div>
+
+    <div class="pt-4">
+        @auth
+            @if (auth()->id() !== $item->user_id)
+                <flux:button wire:click="contactOwner">
+                    {{ __('Contact owner') }}
+                </flux:button>
+            @else
+                <p class="text-sm">
+                    {{ __('This is your item') }}
+                </p>
+            @endif
+        @else
+            <flux:button :href="route('login')">
+                {{ __('Login to contact owner') }}
+            </flux:button>
+        @endauth
     </div>
 
 </div>

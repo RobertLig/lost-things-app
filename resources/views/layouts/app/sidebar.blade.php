@@ -19,6 +19,11 @@
                     {{-- dashboard --}} wire:navigate>
                     {{ __('Home') }}
                 </flux:sidebar.item>
+
+                <flux:sidebar.item icon="home" :href="route('messages')" :current="request()->routeIs('messages')"
+                    {{-- dashboard --}} wire:navigate>
+                    {{ __('Messages') }}
+                </flux:sidebar.item>
             </flux:sidebar.group>
         </flux:sidebar.nav>
 

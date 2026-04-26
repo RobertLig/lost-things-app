@@ -60,6 +60,14 @@ Route::group(
         // Fortify auth routes
         //require base_path('vendor/laravel/fortify/routes/routes.php');
 
+
+
+        Route::get(LaravelLocalization::transRoute('routes.messages'), function ($conversation = null) {
+            return view('messages', [
+                'conversationId' => $conversation,
+            ]);
+        })->middleware('auth')->name('messages');
+
         Route::livewire(
             LaravelLocalization::transRoute('routes.items.create'),
             'items.item-form'

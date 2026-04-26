@@ -26,5 +26,7 @@ return [
         'create' => 'przedmioty/dodaj',
         'edit' => 'przedmioty/{item}/edytuj',
         'show' => 'przedmioty/{item}'
-    ]
+    ],
+
+    'messages' => 'wiadomości/{conversation?}'
 ];

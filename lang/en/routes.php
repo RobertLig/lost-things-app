@@ -26,5 +26,7 @@ return [
         'create' => 'items/create',
         'edit' => 'items/{item}/edit',
         'show' => 'items/{item}'
-    ]
+    ],
+
+    'messages' => 'messages/{conversation?}'
 ];
