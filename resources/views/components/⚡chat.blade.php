@@ -3,6 +3,7 @@
 use Livewire\Component;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Events\MessageSent;
 
 new class extends Component {
     public $conversationId;
@@ -30,11 +31,13 @@ new class extends Component {
             return;
         }
 
-        Message::create([
+        $message = Message::create([
             'conversation_id' => $this->conversationId,
             'sender_id' => auth()->id(),
             'body' => $this->message,
         ]);
+
+        broadcast(new MessageSent($message))->toOthers();
 
         // update conversation timestamp (important for sorting)
         Conversation::where('id', $this->conversationId)->update(['updated_at' => now()]);
@@ -73,10 +76,13 @@ new class extends Component {
     }
 }; ?>
 
-<div class="flex flex-col h-full" wire:poll.3s>
+<div class="flex flex-col h-full" x-data x-init="Echo.private('conversation.' + @js($conversationId))
+    .listen('.message.sent', (e) => {
+        $wire.$refresh();
+    });" class="flex flex-col h-full">
 
     <!-- Messages -->
-    <div class="flex-1 overflow-y-auto mb-4 space-y-2">
+    <div x-data="chatScroll()" x-init="init()" x-ref="container" class="flex-1 overflow-y-auto mb-4 space-y-2">
 
         @foreach ($this->messages as $msg)
             <div class="flex {{ $msg->sender_id === auth()->id() ? 'justify-end' : 'justify-start' }}">
@@ -102,5 +108,36 @@ new class extends Component {
             {{ __('Send') }}
         </flux:button>
     </div>
+
+    <script>
+        function chatScroll() {
+            return {
+                shouldScroll: true,
+
+                init() {
+                    this.scrollToBottom();
+
+                    this.$refs.container.addEventListener('scroll', () => {
+                        const el = this.$refs.container;
+
+                        const nearBottom =
+                            el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+
+                        this.shouldScroll = nearBottom;
+                    });
+
+                    Livewire.hook('message.processed', () => {
+                        if (this.shouldScroll) {
+                            this.scrollToBottom();
+                        }
+                    });
+                },
+
+                scrollToBottom() {
+                    this.$refs.container.scrollTop = this.$refs.container.scrollHeight;
+                }
+            }
+        }
+    </script>
 
 </div>
