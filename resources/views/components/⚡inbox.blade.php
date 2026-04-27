@@ -52,7 +52,7 @@ new class extends Component {
     }
 }; ?>
 
-<div class="grid grid-cols-3 gap-4 h-full text-foreground">
+<div class="grid grid-cols-3 gap-4 h-full text-foreground" wire:poll.5s>
 
     <!-- Inbox list -->
     <div class="col-span-1 border border-border rounded-2xl p-4 overflow-y-auto">

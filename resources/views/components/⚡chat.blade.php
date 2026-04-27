@@ -66,9 +66,14 @@ new class extends Component {
                 'last_read_at' => now(),
             ]);
     }
+
+    public function hydrate()
+    {
+        $this->markAsRead();
+    }
 }; ?>
 
-<div class="flex flex-col h-full">
+<div class="flex flex-col h-full" wire:poll.3s>
 
     <!-- Messages -->
     <div class="flex-1 overflow-y-auto mb-4 space-y-2">
