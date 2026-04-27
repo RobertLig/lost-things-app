@@ -27,9 +27,28 @@ new class extends Component {
     {
         return Conversation::query()
             ->whereHas('participants', fn($q) => $q->where('user_id', auth()->id()))
-            ->with(['participants', 'latestMessage.sender', 'item'])
+            ->with([
+                'participants',
+                'latestMessage.sender',
+                'item',
+                'messages' => function ($q) {
+                    $q->select('id', 'conversation_id', 'sender_id', 'created_at');
+                },
+            ])
             ->latest('updated_at')
-            ->get();
+            ->get()
+            ->map(function ($conversation) {
+                $pivot = $conversation->participants->firstWhere('id', auth()->id())->pivot;
+
+                $lastRead = $pivot->last_read_at;
+
+                $conversation->unread_count = $conversation->messages
+                    ->where('sender_id', '!=', auth()->id())
+                    ->where('created_at', '>', $lastRead)
+                    ->count();
+
+                return $conversation;
+            });
     }
 }; ?>
 
@@ -44,8 +63,16 @@ new class extends Component {
             <div wire:click="selectConversation({{ $conversation->id }})"
                 class="p-3 mb-2 rounded-xl cursor-pointer hover:bg-secondary
                        {{ $selectedConversationId === $conversation->id ? 'bg-surface' : '' }}">
-                <div class="text-sm font-medium">
-                    {{ $conversation->item->title ?? __('Item') }}
+                <div class="flex justify-between items-center">
+                    <div class="text-sm font-medium">
+                        {{ $conversation->item->title ?? 'Item' }}
+                    </div>
+
+                    @if ($conversation->unread_count > 0)
+                        <span class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                            {{ $conversation->unread_count }}
+                        </span>
+                    @endif
                 </div>
 
                 <div class="text-xs text-foreground/50">

@@ -13,11 +13,15 @@ new class extends Component {
     public function mount($conversationId = null)
     {
         $this->conversationId = $conversationId;
+
+        $this->markAsRead();
     }
 
     public function loadConversation($id)
     {
         $this->conversationId = $id;
+
+        $this->markAsRead();
     }
 
     public function sendMessage()
@@ -47,6 +51,20 @@ new class extends Component {
         }
 
         return Message::query()->where('conversation_id', $this->conversationId)->with('sender')->latest()->take(50)->get()->reverse();
+    }
+
+    public function markAsRead()
+    {
+        if (!$this->conversationId) {
+            return;
+        }
+
+        auth()
+            ->user()
+            ->conversations()
+            ->updateExistingPivot($this->conversationId, [
+                'last_read_at' => now(),
+            ]);
     }
 }; ?>
 

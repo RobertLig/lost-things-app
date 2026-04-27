@@ -20,10 +20,25 @@
                     {{ __('Home') }}
                 </flux:sidebar.item>
 
-                <flux:sidebar.item icon="home" :href="route('messages')" :current="request()->routeIs('messages')"
-                    {{-- dashboard --}} wire:navigate>
-                    {{ __('Messages') }}
-                </flux:sidebar.item>
+                @auth
+                    @php
+                        $unreadTotal = auth()
+                            ->user()
+                            ->conversations->sum(function ($conversation) {
+                                $lastRead = $conversation->pivot->last_read_at;
+
+                                return $conversation->messages
+                                    ->where('sender_id', '!=', auth()->id())
+                                    ->where('created_at', '>', $lastRead)
+                                    ->count();
+                            });
+                    @endphp
+
+                    <flux:sidebar.item icon="home" :href="route('messages')" :current="request()->routeIs('messages')"
+                        :badge="$unreadTotal" wire:navigate>
+                        {{ __('Messages') }}
+                    </flux:sidebar.item>
+                @endauth
             </flux:sidebar.group>
         </flux:sidebar.nav>
 
