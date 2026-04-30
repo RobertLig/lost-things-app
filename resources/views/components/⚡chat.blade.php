@@ -24,8 +24,6 @@ new class extends Component {
         $this->conversationId = $id;
 
         $this->markAsRead();
-
-        $this->dispatch('$refresh');
     }
 
     public function sendMessage()
@@ -46,8 +44,6 @@ new class extends Component {
         Conversation::where('id', $this->conversationId)->update(['updated_at' => now()]);
 
         $this->reset('message');
-
-        $this->dispatch('$refresh');
     }
 
     public function getMessagesProperty()
@@ -86,68 +82,96 @@ new class extends Component {
 }; ?>
 
 <div class="flex flex-col h-full" x-data="{
+    conversationId: @js($conversationId),
+    userId: @js(auth()->id()),
+    messages: @js($this->messages->values()),
+
     channel: null,
 
+    typing: false,
+    typingTimeout: null,
+
+    otherTyping: false,
+    otherTypingTimeout: null,
+
     init() {
-        const id = @js($conversationId);
+        this.subscribe();
+    },
 
-        if (!id) return;
+    subscribe() {
+        if (!this.conversationId) return;
 
-        this.channel = Echo.private('conversation.' + id)
-            .listen('.message.sent', () => {
-                console.log('🔥 message received via Echo');
-                this.$wire.$refresh();
+        this.channel = Echo.private('conversation.' + this.conversationId)
+            .listen('.message.sent', (e) => {
+                const msg = e.message;
+
+                if (!msg || !msg.id) return;
+
+                if (this.messages.find(m => m.id === msg.id)) return;
+
+                console.log('🔥 push', msg);
+
+                this.messages.push(msg);
+                this.scrollToBottom();
+            })
+            .listenForWhisper('typing', (e) => {
+                if (e.userId === this.userId) return;
+
+                this.otherTyping = true;
+
+                clearTimeout(this.otherTypingTimeout);
+
+                this.otherTypingTimeout = setTimeout(() => {
+                    this.otherTyping = false;
+                }, 1500);
             });
+    },
+
+    scrollToBottom() {
+        this.$nextTick(() => {
+            this.$refs.container.scrollTop = this.$refs.container.scrollHeight;
+        });
+    },
+
+    notifyTyping() {
+        if (!this.channel) return;
+
+        this.channel.whisper('typing', {
+            userId: this.userId
+        });
+
+        // optional debounce flag
+        this.typing = true;
+
+        clearTimeout(this.typingTimeout);
+
+        this.typingTimeout = setTimeout(() => {
+            this.typing = false;
+        }, 1000);
     }
 }" x-init="init()">
 
     <!-- Messages -->
-    <div x-data="{
-        shouldScroll: true,
-    
-        init() {
-            this.scrollToBottom();
-    
-            this.$refs.container.addEventListener('scroll', () => {
-                const el = this.$refs.container;
-    
-                const nearBottom =
-                    el.scrollHeight - el.scrollTop - el.clientHeight < 100;
-    
-                this.shouldScroll = nearBottom;
-            });
-    
-            Livewire.hook('message.processed', () => {
-                if (this.shouldScroll) {
-                    this.scrollToBottom();
-                }
-            });
-        },
-    
-        scrollToBottom() {
-            this.$refs.container.scrollTop = this.$refs.container.scrollHeight;
-        }
-    }" x-ref="container" class="flex-1 overflow-y-auto mb-4 space-y-2">
-
-        @foreach ($this->messages as $msg)
-            <div class="flex {{ $msg->sender_id === auth()->id() ? 'justify-end' : 'justify-start' }}">
-
-                <div
-                    class="px-3 py-2 rounded-2xl max-w-xs
-                    {{ $msg->sender_id === auth()->id() ? 'bg-secondary text-secondary-foreground' : 'bg-secondary-foreground text-secondary' }}">
-
-                    {{ $msg->body }}
-                </div>
-
+    <div x-ref="container" class="flex-1 overflow-y-auto mb-4 space-y-2" wire:ignore>
+        <template x-for="msg in messages" :key="msg.id">
+            <div class="flex" :class="msg.sender_id === userId ? 'justify-end' : 'justify-start'">
+                <div class="px-3 py-2 rounded-2xl max-w-xs"
+                    :class="msg.sender_id === userId ?
+                        'bg-secondary text-secondary-foreground' :
+                        'bg-secondary-foreground text-secondary'"
+                    x-text="msg.body"></div>
             </div>
-        @endforeach
-
+        </template>
     </div>
+
+    <span x-show="otherTyping" class="text-foreground text-sm">
+        {{ __('Someone is typing...') }}
+    </span>
 
     <!-- Input -->
     <div class="flex gap-2">
-        <flux:input wire:model="message" wire:keydown.enter="sendMessage" class="flex-1"
-            placeholder="{{ __('Type a message...') }}" />
+        <flux:input wire:model="message" wire:keydown.enter="sendMessage" x-on:input.debounce.300ms="notifyTyping()"
+            class="flex-1" placeholder="{{ __('Type a message...') }}" />
 
         <flux:button wire:click="sendMessage">
             {{ __('Send') }}

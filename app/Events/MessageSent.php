@@ -38,10 +38,13 @@ class MessageSent implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
-        logger('Broadcast payload sent');
-
         return [
-            'id' => $this->message->id,
+            'message' => [
+                'id' => $this->message->id,
+                'body' => $this->message->body,
+                'sender_id' => $this->message->sender_id,
+                'conversation_id' => $this->message->conversation_id,
+            ],
         ];
     }
 }
