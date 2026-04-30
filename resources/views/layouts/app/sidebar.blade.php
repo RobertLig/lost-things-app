@@ -21,7 +21,7 @@
                 </flux:sidebar.item>
 
                 @auth
-                    @php
+                    {{-- @php
                         $unreadTotal = auth()
                             ->user()
                             ->conversations->sum(function ($conversation) {
@@ -32,11 +32,12 @@
                                     ->where('created_at', '>', $lastRead)
                                     ->count();
                             });
-                    @endphp
+                    @endphp --}}
 
                     <flux:sidebar.item icon="home" :href="route('messages')" :current="request()->routeIs('messages')"
-                        :badge="$unreadTotal" wire:navigate>
+                        wire:navigate> {{-- :badge="$unreadTotal" --}}
                         {{ __('Messages') }}
+                        <livewire:unread-badge />
                     </flux:sidebar.item>
                 @endauth
             </flux:sidebar.group>

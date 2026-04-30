@@ -2,6 +2,7 @@
 
 use Livewire\Component;
 use App\Models\Conversation;
+use Livewire\Attributes\On;
 
 new class extends Component {
     public $selectedConversationId = null;
@@ -50,9 +51,19 @@ new class extends Component {
                 return $conversation;
             });
     }
+
+    #[On('message-received')]
+    public function updateUnread($conversationId)
+    {
+        if ($conversationId === $this->selectedConversationId) {
+            return;
+        }
+
+        $this->dispatch('$refresh');
+    }
 }; ?>
 
-<div class="grid grid-cols-3 gap-4 h-full text-foreground"> {{-- wire:poll.5s --}}
+<div class="max-sm:space-y-3 sm:grid grid-cols-3 gap-4 h-full text-foreground"> {{-- wire:poll.5s --}}
 
     <!-- Inbox list -->
     <div class="col-span-1 border border-border rounded-2xl p-4 overflow-y-auto">
@@ -84,7 +95,7 @@ new class extends Component {
     </div>
 
     <!-- Chat panel -->
-    <div class="col-span-2 border border-border rounded-2xl p-4">
+    <div class="col-span-2 border border-border rounded-2xl p-4 flex flex-col min-h-0">
         @if ($selectedConversationId)
             <livewire:chat :conversationId="$selectedConversationId" />
         @else

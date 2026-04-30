@@ -38,7 +38,7 @@ new class extends Component {
             'body' => $this->message,
         ]);
 
-        broadcast(new MessageSent($message)); //->toOthers()
+        broadcast(new MessageSent($message))->toOthers();
 
         // update conversation timestamp (important for sorting)
         Conversation::where('id', $this->conversationId)->update(['updated_at' => now()]);
@@ -81,10 +81,12 @@ new class extends Component {
     }
 }; ?>
 
-<div class="flex flex-col h-full" x-data="{
+<div class="flex flex-col h-full min-h-0" x-data="{
     conversationId: @js($conversationId),
     userId: @js(auth()->id()),
     messages: @js($this->messages->values()),
+
+    newMessage: '',
 
     channel: null,
 
@@ -107,12 +109,21 @@ new class extends Component {
 
                 if (!msg || !msg.id) return;
 
+                // 🔥 prevent duplicates (important)
                 if (this.messages.find(m => m.id === msg.id)) return;
+
+                // 🔥 replace temp message (optional but better)
+                this.messages = this.messages.filter(m => m.id !== msg.temp_id);
 
                 console.log('🔥 push', msg);
 
                 this.messages.push(msg);
                 this.scrollToBottom();
+
+                // 👇 ADD THIS
+                this.$wire.dispatch('message-received', {
+                    conversationId: msg.conversation_id
+                });
             })
             .listenForWhisper('typing', (e) => {
                 if (e.userId === this.userId) return;
@@ -148,11 +159,27 @@ new class extends Component {
         this.typingTimeout = setTimeout(() => {
             this.typing = false;
         }, 1000);
+    },
+
+    sendLocalMessage() {
+        if (!this.newMessage) return;
+
+        const tempId = Date.now(); // temporary unique id
+
+        this.messages.push({
+            id: tempId,
+            body: this.newMessage,
+            sender_id: this.userId,
+        });
+
+        this.scrollToBottom();
+
+        this.newMessage = '';
     }
 }" x-init="init()">
 
     <!-- Messages -->
-    <div x-ref="container" class="flex-1 overflow-y-auto mb-4 space-y-2" wire:ignore>
+    <div x-ref="container" class="flex-1 overflow-y-auto mb-4 space-y-2 min-h-0" wire:ignore>
         <template x-for="msg in messages" :key="msg.id">
             <div class="flex" :class="msg.sender_id === userId ? 'justify-end' : 'justify-start'">
                 <div class="px-3 py-2 rounded-2xl max-w-xs"
@@ -170,10 +197,11 @@ new class extends Component {
 
     <!-- Input -->
     <div class="flex gap-2">
-        <flux:input wire:model="message" wire:keydown.enter="sendMessage" x-on:input.debounce.300ms="notifyTyping()"
-            class="flex-1" placeholder="{{ __('Type a message...') }}" />
+        <flux:input x-model="newMessage" wire:model="message"
+            x-on:keydown.enter.prevent="sendLocalMessage(); $wire.sendMessage()"
+            x-on:input.debounce.300ms="notifyTyping()" class="flex-1" placeholder="{{ __('Type a message...') }}" />
 
-        <flux:button wire:click="sendMessage">
+        <flux:button x-on:click="sendLocalMessage()" wire:click="sendMessage">
             {{ __('Send') }}
         </flux:button>
     </div>
