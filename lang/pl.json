@@ -113,5 +113,10 @@
     "Type a message...": "Napisz wiadomość",
     "Messages": "Wiadomości",
     "Send": "Wyślij",
-    "Someone is typing...": "Ktoś pisze..."
+    "Someone is typing...": "Ktoś pisze...",
+    "Block user": "Zablokuj rozmówcę",
+    "You cannot send messages in this conversation.": "Nie możesz wysyłać wiadomości w tej rozmowie.",
+    "You cannot reply to this conversation.": "Nie możesz odpowiedzieć w tej rozmowie",
+    "Unblock user": "Odblokuj rozmówcę",
+    "Messaging disabled": "Wysyłanie wiadomości wyłączone"
 }

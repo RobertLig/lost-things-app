@@ -32,6 +32,12 @@ new class extends Component {
             return;
         }
 
+        $otherUserId = $this->getOtherUserId();
+
+        if (auth()->user()->isBlockingOrBlocked($otherUserId)) {
+            return; // blocked → do nothing
+        }
+
         $message = Message::create([
             'conversation_id' => $this->conversationId,
             'sender_id' => auth()->id(),
@@ -115,6 +121,55 @@ new class extends Component {
                 'deleted_by_receiver_at' => now(),
             ]);
         }
+    }
+
+    public function blockUser($userId)
+    {
+        auth()
+            ->user()
+            ->blockedUsers()
+            ->syncWithoutDetaching([$userId]);
+    }
+
+    public function getOtherUserId()
+    {
+        return Conversation::find($this->conversationId)
+            ->participants()
+            ->where('user_id', '!=', auth()->id())
+            ->value('user_id');
+    }
+
+    public function getIsBlockedProperty()
+    {
+        $otherUserId = $this->getOtherUserId();
+
+        return auth()->user()->isBlockingOrBlocked($otherUserId);
+    }
+
+    public function unblockUser($userId)
+    {
+        auth()->user()->blockedUsers()->detach($userId);
+    }
+
+    public function getHasBlockedProperty()
+    {
+        $otherUserId = $this->getOtherUserId();
+
+        return auth()->user()->hasBlocked($otherUserId);
+    }
+
+    public function getIsBlockedByOtherProperty()
+    {
+        $otherUserId = $this->getOtherUserId();
+
+        return auth()->user()->isBlockedBy($otherUserId);
+    }
+
+    public function getCannotSendMessagesProperty()
+    {
+        $otherUserId = $this->getOtherUserId();
+
+        return auth()->user()->hasBlocked($otherUserId) || auth()->user()->isBlockedBy($otherUserId);
     }
 }; ?>
 
@@ -215,6 +270,30 @@ new class extends Component {
     }
 }" x-init="init()">
 
+    @if ($this->hasBlocked)
+        <div class="text-red-500 text-sm mb-2">
+            {{ __('You cannot send messages in this conversation.') }}
+        </div>
+    @endif
+
+    @if ($this->isBlockedByOther)
+        <div class="text-red-500 text-sm mb-2">
+            {{ __('You cannot reply to this conversation.') }}
+        </div>
+    @endif
+
+    <div class="flex justify-end mb-5 size-auto">
+        @if ($this->hasBlocked)
+            <flux:button wire:click="unblockUser({{ $this->getOtherUserId() }})" size="xs">
+                {{ __('Unblock user') }}
+            </flux:button>
+        @elseif (!$this->isBlockedByOther)
+            <flux:button wire:click="blockUser({{ $this->getOtherUserId() }})" variant="danger" size="xs">
+                {{ __('Block user') }}
+            </flux:button>
+        @endif
+    </div>
+
     <!-- Messages -->
     <div x-ref="container" class="flex-1 overflow-y-auto mb-4 space-y-2 min-h-0" wire:ignore>
         <template x-for="msg in messages" :key="msg.id">
@@ -245,9 +324,18 @@ new class extends Component {
 
     <!-- Input -->
     <div class="flex gap-2">
-        <flux:input x-model="newMessage" wire:model="message"
-            x-on:keydown.enter.prevent="sendLocalMessage(); $wire.sendMessage()"
-            x-on:input.debounce.300ms="notifyTyping()" class="flex-1" placeholder="{{ __('Type a message...') }}" />
+
+        @if (!$this->cannotSendMessages)
+            <flux:input x-model="newMessage" wire:model="message"
+                x-on:keydown.enter.prevent="sendLocalMessage(); $wire.sendMessage()"
+                x-on:input.debounce.300ms="notifyTyping()" class="flex-1" placeholder="{{ __('Type a message...') }}" />
+        @else
+            <div class="text-sm p-2 bg-surface text-surface-foreground/70 rounded-lg border border-border flex-1">
+                {{ __('Messaging disabled') }}
+            </div>
+        @endif
+
+
 
         <flux:button x-on:click="sendLocalMessage()" wire:click="sendMessage">
             {{ __('Send') }}
