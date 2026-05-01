@@ -36,8 +36,10 @@
 
                     <flux:sidebar.item icon="home" :href="route('messages')" :current="request()->routeIs('messages')"
                         wire:navigate> {{-- :badge="$unreadTotal" --}}
-                        {{ __('Messages') }}
-                        <livewire:unread-badge />
+                        <div class="flex justify-between">
+                            {{ __('Messages') }}
+                            <livewire:unread-badge />
+                        </div>
                     </flux:sidebar.item>
                 @endauth
             </flux:sidebar.group>

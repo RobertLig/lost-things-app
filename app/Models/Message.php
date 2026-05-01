@@ -10,6 +10,8 @@ class Message extends Model
         'conversation_id',
         'sender_id',
         'body',
+        'deleted_by_sender_at',
+        'deleted_by_receiver_at',
         'read_at',
     ];
 

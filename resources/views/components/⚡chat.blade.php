@@ -52,7 +52,22 @@ new class extends Component {
             return collect();
         }
 
-        return Message::query()->where('conversation_id', $this->conversationId)->with('sender')->latest()->take(50)->get()->reverse();
+        return Message::query()
+            ->where('conversation_id', $this->conversationId)
+            ->where(function ($q) {
+                $userId = auth()->id();
+
+                $q->where(function ($q2) use ($userId) {
+                    $q2->where('sender_id', $userId)->whereNull('deleted_by_sender_at');
+                })->orWhere(function ($q2) use ($userId) {
+                    $q2->where('sender_id', '!=', $userId)->whereNull('deleted_by_receiver_at');
+                });
+            })
+            ->with('sender')
+            ->latest()
+            ->take(50)
+            ->get()
+            ->reverse();
     }
 
     public function markAsRead()
@@ -78,6 +93,28 @@ new class extends Component {
     public function hydrate()
     {
         $this->markAsRead();
+    }
+
+    public function deleteMessage($messageId)
+    {
+        $message = Message::findOrFail($messageId);
+
+        $userId = auth()->id();
+
+        // safety: must belong to this conversation
+        if ($message->conversation_id != $this->conversationId) {
+            return;
+        }
+
+        if ($message->sender_id === $userId) {
+            $message->update([
+                'deleted_by_sender_at' => now(),
+            ]);
+        } else {
+            $message->update([
+                'deleted_by_receiver_at' => now(),
+            ]);
+        }
     }
 }; ?>
 
@@ -181,12 +218,23 @@ new class extends Component {
     <!-- Messages -->
     <div x-ref="container" class="flex-1 overflow-y-auto mb-4 space-y-2 min-h-0" wire:ignore>
         <template x-for="msg in messages" :key="msg.id">
-            <div class="flex" :class="msg.sender_id === userId ? 'justify-end' : 'justify-start'">
+            <div class="flex items-center gap-2 pe-4"
+                :class="msg.sender_id === userId ? 'justify-end' : 'justify-start'">
+
+                <!-- message -->
                 <div class="px-3 py-2 rounded-2xl max-w-xs"
                     :class="msg.sender_id === userId ?
                         'bg-secondary text-secondary-foreground' :
                         'bg-secondary-foreground text-secondary'"
-                    x-text="msg.body"></div>
+                    x-text="msg.body">
+                </div>
+
+                <!-- delete button -->
+                <button class="text-xs text-secondary-foreground hover:opacity-100"
+                    x-on:click="$wire.deleteMessage(msg.id); messages = messages.filter(m => m.id !== msg.id)">
+                    ✕
+                </button>
+
             </div>
         </template>
     </div>
